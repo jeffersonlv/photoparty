@@ -14,6 +14,17 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: function (): void {
+            // Um arquivo de rotas por módulo, para equipes/agentes trabalharem em paralelo
+            // sem editar o mesmo arquivo. Todos usam o grupo de middleware "web".
+            foreach (['guest', 'screen', 'photos', 'admin', 'home'] as $module) {
+                $file = base_path("routes/{$module}.php");
+
+                if (is_file($file)) {
+                    \Illuminate\Support\Facades\Route::middleware('web')->group($file);
+                }
+            }
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Headers de segurança em toda resposta (inclusive erros).

@@ -1,0 +1,39 @@
+<?php
+
+use App\Http\Middleware\EnsureAccountCanManageEvents;
+use App\Http\Middleware\EnsureUserHasAccount;
+use App\Http\Middleware\SecurityHeaders;
+use App\Http\Middleware\SetLocale;
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        // Headers de segurança em toda resposta (inclusive erros).
+        $middleware->append(SecurityHeaders::class);
+
+        $middleware->web(append: [
+            SetLocale::class,
+        ]);
+
+        $middleware->alias([
+            'account' => EnsureUserHasAccount::class,
+            'account.can-manage-events' => EnsureAccountCanManageEvents::class,
+        ]);
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        // Nunca registrar senhas/tokens no log de validação.
+        $exceptions->dontFlash([
+            'current_password',
+            'password',
+            'password_confirmation',
+            't',
+            'token',
+        ]);
+    })->create();

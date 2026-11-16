@@ -1,0 +1,56 @@
+<?php
+
+return [
+    'accepted' => 'É preciso aceitar :attribute.',
+    'after' => 'O campo :attribute deve ser uma data posterior a :date.',
+    'after_or_equal' => 'O campo :attribute deve ser uma data igual ou posterior a :date.',
+    'array' => 'O campo :attribute deve ser uma lista.',
+    'before' => 'O campo :attribute deve ser uma data anterior a :date.',
+    'before_or_equal' => 'O campo :attribute deve ser uma data igual ou anterior a :date.',
+    'boolean' => 'O campo :attribute deve ser verdadeiro ou falso.',
+    'confirmed' => 'A confirmação de :attribute não confere.',
+    'date' => 'O campo :attribute não é uma data válida.',
+    'email' => 'O campo :attribute deve ser um e-mail válido.',
+    'exists' => 'O valor de :attribute é inválido.',
+    'image' => 'O campo :attribute deve ser uma imagem.',
+    'in' => 'O valor de :attribute é inválido.',
+    'integer' => 'O campo :attribute deve ser um número inteiro.',
+    'max' => [
+        'array' => 'O campo :attribute não pode ter mais de :max itens.',
+        'file' => 'O arquivo :attribute não pode ter mais de :max kilobytes.',
+        'numeric' => 'O campo :attribute não pode ser maior que :max.',
+        'string' => 'O campo :attribute não pode ter mais de :max caracteres.',
+    ],
+    'mimes' => 'O campo :attribute deve ser um arquivo do tipo: :values.',
+    'min' => [
+        'array' => 'O campo :attribute deve ter pelo menos :min itens.',
+        'file' => 'O arquivo :attribute deve ter pelo menos :min kilobytes.',
+        'numeric' => 'O campo :attribute deve ser pelo menos :min.',
+        'string' => 'O campo :attribute deve ter pelo menos :min caracteres.',
+    ],
+    'numeric' => 'O campo :attribute deve ser um número.',
+    'password' => [
+        'letters' => 'A :attribute deve conter pelo menos uma letra.',
+        'mixed' => 'A :attribute deve conter letras maiúsculas e minúsculas.',
+        'numbers' => 'A :attribute deve conter pelo menos um número.',
+        'symbols' => 'A :attribute deve conter pelo menos um símbolo.',
+        'uncompromised' => 'Esta :attribute apareceu em um vazamento de dados. Escolha outra.',
+    ],
+    'prohibited' => 'O campo :attribute não é permitido.',
+    'required' => 'O campo :attribute é obrigatório.',
+    'string' => 'O campo :attribute deve ser um texto.',
+    'unique' => 'Este :attribute já está em uso.',
+    'url' => 'O campo :attribute deve ser uma URL válida.',
+    'uuid' => 'O campo :attribute deve ser um UUID válido.',
+
+    'custom' => [],
+
+    'attributes' => [
+        'name' => 'nome',
+        'email' => 'e-mail',
+        'password' => 'senha',
+        'terms' => 'termos de uso',
+        'starts_at' => 'início',
+        'ends_at' => 'fim',
+    ],
+];

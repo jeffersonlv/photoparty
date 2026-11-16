@@ -1,0 +1,134 @@
+/* Pagina do convidado — mobile-first, sem framework, sem fontes/recursos externos.
+   Fonte da interface: Inter (via @font-face local em /fonts) com fallback de sistema. */
+
+:root {
+  --gp-bg: #0f1020;
+  --gp-surface: #1a1b30;
+  --gp-surface-2: #24253f;
+  --gp-text: #f4f4fb;
+  --gp-muted: #a9abc8;
+  --gp-accent: #ff4d8d;
+  --gp-accent-2: #7c5cff;
+  --gp-ok: #3ddc97;
+  --gp-danger: #ff6b6b;
+  --gp-radius: 18px;
+  --gp-tap: 56px; /* alvo de toque confortavel para o polegar */
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[x-cloak] { display: none !important; }
+
+.gp-body {
+  margin: 0;
+  min-height: 100dvh;
+  background: radial-gradient(120% 80% at 50% -10%, #2a2060 0%, var(--gp-bg) 55%) fixed;
+  color: var(--gp-text);
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.gp {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: max(12px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 100dvh;
+}
+
+.gp-header { display: flex; align-items: center; gap: 8px; min-height: 48px; }
+.gp-event { margin: 0; font-weight: 600; color: var(--gp-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.gp-step { display: flex; flex-direction: column; gap: 16px; }
+.gp-step--center { align-items: center; text-align: center; margin-block: auto; }
+
+.gp-title { margin: 0; font-size: clamp(1.5rem, 6vw, 2rem); line-height: 1.15; letter-spacing: -0.02em; }
+.gp-title:focus { outline: none; }
+.gp-h2 { margin: 0; font-size: 1.05rem; }
+.gp-lead { margin: 0; font-size: 1.1rem; color: var(--gp-muted); }
+.gp-small { margin: 0; font-size: 0.9rem; color: var(--gp-muted); }
+
+.gp-card { background: var(--gp-surface); border-radius: var(--gp-radius); padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+
+/* botoes grandes */
+.gp-btn {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  min-height: var(--gp-tap);
+  padding: 0 24px;
+  width: 100%;
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--gp-text);
+  background: var(--gp-surface-2);
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.12s ease, opacity 0.12s ease;
+}
+.gp-btn:active { transform: scale(0.98); }
+.gp-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+.gp-btn--primary { background: linear-gradient(135deg, var(--gp-accent), var(--gp-accent-2)); box-shadow: 0 10px 30px -10px rgba(255, 77, 141, 0.7); }
+.gp-btn--shutter { min-height: 68px; font-size: 1.15rem; }
+.gp-iconbtn { appearance: none; border: 0; background: var(--gp-surface); color: var(--gp-text); width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; }
+
+.gp-actions { display: flex; flex-direction: column; gap: 12px; }
+
+/* camera */
+.gp-camera { position: relative; border-radius: var(--gp-radius); overflow: hidden; background: #000; aspect-ratio: 3 / 4; max-height: 62dvh; margin-inline: auto; width: 100%; }
+.gp-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gp-video.is-mirrored { transform: scaleX(-1); } /* frontal como espelho (a captura tambem sai espelhada) */
+.gp-camera-msg { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: var(--gp-muted); }
+
+/* palco com o canvas */
+.gp-stage { position: relative; display: grid; place-items: center; }
+.gp-canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 60dvh;
+  width: auto;
+  height: auto;
+  border-radius: 12px;
+  background: #000;
+  box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.8);
+  touch-action: none;
+}
+.gp-stage-busy { position: absolute; inset: auto 0 12px 0; text-align: center; margin: 0; font-size: 0.9rem; color: var(--gp-muted); }
+
+/* chips (molduras e filtros) */
+.gp-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.gp-chip { appearance: none; border: 2px solid transparent; background: var(--gp-surface); color: var(--gp-text); font: inherit; font-weight: 600; border-radius: 999px; min-height: 48px; padding: 0 20px; cursor: pointer; }
+.gp-chip.is-on { border-color: var(--gp-accent); background: rgba(255, 77, 141, 0.16); }
+
+/* formularios */
+.gp-field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
+.gp-field small { font-weight: 400; color: var(--gp-muted); }
+.gp-field input[type='text'] { font: inherit; font-size: 1rem; min-height: var(--gp-tap); padding: 0 16px; border-radius: 14px; border: 2px solid var(--gp-surface-2); background: var(--gp-surface); color: var(--gp-text); }
+.gp-field input[type='text']:focus { border-color: var(--gp-accent-2); outline: none; }
+.gp-range { display: flex; flex-direction: column; gap: 8px; font-weight: 600; }
+.gp-range input { width: 100%; height: 40px; accent-color: var(--gp-accent); }
+.gp-check { display: flex; align-items: center; gap: 12px; font-weight: 600; min-height: 48px; cursor: pointer; }
+.gp-check input { width: 26px; height: 26px; accent-color: var(--gp-accent); flex: none; }
+
+/* progresso e alertas */
+.gp-progress progress { width: 100%; height: 12px; border-radius: 999px; overflow: hidden; accent-color: var(--gp-accent); }
+.gp-alert { margin: 0; padding: 14px 16px; border-radius: 14px; background: rgba(255, 107, 107, 0.14); border: 1px solid rgba(255, 107, 107, 0.5); color: #ffd6d6; }
+.gp-check-icon { color: var(--gp-ok); }
+.gp-noscript { margin: 0; padding: 16px; background: var(--gp-danger); color: #111; text-align: center; }
+
+.gp-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.gp-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+
+@media (min-width: 700px) {
+  .gp { max-width: 640px; padding-top: 24px; }
+  .gp-actions { flex-direction: row; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gp-btn { transition: none; }
+}

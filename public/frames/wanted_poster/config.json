@@ -1,0 +1,218 @@
+{
+  "version": 1,
+  "key": "wanted_poster",
+  "name": {
+    "pt": "Cartaz de Procurado",
+    "en": "Wanted Poster"
+  },
+  "orientations": {
+    "portrait": {
+      "width": 1080,
+      "height": 1350,
+      "background": "portrait-bg.png",
+      "window": {
+        "x": 170,
+        "y": 322,
+        "w": 740,
+        "h": 620
+      },
+      "overlay": "portrait-overlay.png",
+      "texts": [
+        {
+          "id": "wanted_title",
+          "x": 540,
+          "y": 182,
+          "maxWidth": 800,
+          "font": "Rye",
+          "size": 126,
+          "color": "#3B2412",
+          "align": "center",
+          "baseline": "middle",
+          "maxChars": 40,
+          "shadow": {
+            "color": "rgba(255,240,200,0.35)",
+            "blur": 1,
+            "offsetX": 1,
+            "offsetY": 1
+          },
+          "transform": "uppercase",
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Título do cartaz",
+            "en": "Poster title"
+          },
+          "default": {
+            "pt": "PROCURADO",
+            "en": "WANTED"
+          }
+        },
+        {
+          "id": "guest_name",
+          "x": 540,
+          "y": 1052,
+          "maxWidth": 800,
+          "font": "Rye",
+          "size": 84,
+          "color": "#3B2412",
+          "align": "center",
+          "baseline": "middle",
+          "maxChars": 40,
+          "shadow": {
+            "color": "rgba(255,240,200,0.35)",
+            "blur": 1,
+            "offsetX": 1,
+            "offsetY": 1
+          },
+          "transform": "uppercase",
+          "filledBy": "guest",
+          "label": {
+            "pt": "Nome do convidado",
+            "en": "Guest name"
+          },
+          "default": {
+            "pt": "SEU NOME",
+            "en": "YOUR NAME"
+          }
+        },
+        {
+          "id": "reward",
+          "x": 540,
+          "y": 1204,
+          "maxWidth": 800,
+          "font": "Rye",
+          "size": 46,
+          "color": "#8A2410",
+          "align": "center",
+          "baseline": "middle",
+          "maxChars": 40,
+          "shadow": {
+            "color": "rgba(255,240,200,0.35)",
+            "blur": 1,
+            "offsetX": 1,
+            "offsetY": 1
+          },
+          "transform": "uppercase",
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Recompensa",
+            "en": "Reward"
+          },
+          "default": {
+            "pt": "RECOMPENSA: UM BRINDE",
+            "en": "REWARD: ONE TOAST"
+          }
+        }
+      ],
+      "effect": {
+        "type": "sepia",
+        "params": {
+          "intensity": 1
+        }
+      }
+    },
+    "landscape": {
+      "width": 1920,
+      "height": 1080,
+      "background": "landscape-bg.png",
+      "window": {
+        "x": 500,
+        "y": 290,
+        "w": 920,
+        "h": 480
+      },
+      "overlay": "landscape-overlay.png",
+      "texts": [
+        {
+          "id": "wanted_title",
+          "x": 960,
+          "y": 142,
+          "maxWidth": 1100,
+          "font": "Rye",
+          "size": 120,
+          "color": "#3B2412",
+          "align": "center",
+          "baseline": "middle",
+          "maxChars": 40,
+          "shadow": {
+            "color": "rgba(255,240,200,0.35)",
+            "blur": 1,
+            "offsetX": 1,
+            "offsetY": 1
+          },
+          "transform": "uppercase",
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Título do cartaz",
+            "en": "Poster title"
+          },
+          "default": {
+            "pt": "PROCURADO",
+            "en": "WANTED"
+          }
+        },
+        {
+          "id": "guest_name",
+          "x": 960,
+          "y": 862,
+          "maxWidth": 1300,
+          "font": "Rye",
+          "size": 84,
+          "color": "#3B2412",
+          "align": "center",
+          "baseline": "middle",
+          "maxChars": 40,
+          "shadow": {
+            "color": "rgba(255,240,200,0.35)",
+            "blur": 1,
+            "offsetX": 1,
+            "offsetY": 1
+          },
+          "transform": "uppercase",
+          "filledBy": "guest",
+          "label": {
+            "pt": "Nome do convidado",
+            "en": "Guest name"
+          },
+          "default": {
+            "pt": "SEU NOME",
+            "en": "YOUR NAME"
+          }
+        },
+        {
+          "id": "reward",
+          "x": 960,
+          "y": 982,
+          "maxWidth": 1300,
+          "font": "Rye",
+          "size": 52,
+          "color": "#8A2410",
+          "align": "center",
+          "baseline": "middle",
+          "maxChars": 40,
+          "shadow": {
+            "color": "rgba(255,240,200,0.35)",
+            "blur": 1,
+            "offsetX": 1,
+            "offsetY": 1
+          },
+          "transform": "uppercase",
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Recompensa",
+            "en": "Reward"
+          },
+          "default": {
+            "pt": "RECOMPENSA: UM BRINDE",
+            "en": "REWARD: ONE TOAST"
+          }
+        }
+      ],
+      "effect": {
+        "type": "sepia",
+        "params": {
+          "intensity": 1
+        }
+      }
+    }
+  }
+}

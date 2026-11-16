@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "key": "led_billboard",
+  "name": {
+    "pt": "Painel de LED",
+    "en": "LED Billboard"
+  },
+  "orientations": {
+    "portrait": {
+      "width": 1080,
+      "height": 1350,
+      "background": "portrait-bg.png",
+      "window": {
+        "x": 112,
+        "y": 262,
+        "w": 856,
+        "h": 766
+      },
+      "overlay": "portrait-overlay.png",
+      "texts": [
+        {
+          "id": "event_name",
+          "x": 540,
+          "y": 1168,
+          "maxWidth": 780,
+          "font": "Anton",
+          "size": 76,
+          "color": "#FFF1B8",
+          "align": "center",
+          "baseline": "middle",
+          "transform": "uppercase",
+          "maxChars": 40,
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Nome do evento",
+            "en": "Event name"
+          },
+          "default": {
+            "pt": "NOSSO EVENTO",
+            "en": "OUR EVENT"
+          },
+          "shadow": {
+            "color": "rgba(255,170,60,0.95)",
+            "blur": 22,
+            "offsetX": 0,
+            "offsetY": 0
+          }
+        }
+      ],
+      "effect": {
+        "type": "led",
+        "params": {
+          "dotSize": 6,
+          "gap": 2,
+          "glow": 0.35
+        }
+      }
+    },
+    "landscape": {
+      "width": 1920,
+      "height": 1080,
+      "background": "landscape-bg.png",
+      "window": {
+        "x": 292,
+        "y": 72,
+        "w": 1336,
+        "h": 726
+      },
+      "overlay": "landscape-overlay.png",
+      "texts": [
+        {
+          "id": "event_name",
+          "x": 960,
+          "y": 928,
+          "maxWidth": 840,
+          "font": "Anton",
+          "size": 76,
+          "color": "#FFF1B8",
+          "align": "center",
+          "baseline": "middle",
+          "transform": "uppercase",
+          "maxChars": 40,
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Nome do evento",
+            "en": "Event name"
+          },
+          "default": {
+            "pt": "NOSSO EVENTO",
+            "en": "OUR EVENT"
+          },
+          "shadow": {
+            "color": "rgba(255,170,60,0.95)",
+            "blur": 22,
+            "offsetX": 0,
+            "offsetY": 0
+          }
+        }
+      ],
+      "effect": {
+        "type": "led",
+        "params": {
+          "dotSize": 6,
+          "gap": 2,
+          "glow": 0.35
+        }
+      }
+    }
+  }
+}

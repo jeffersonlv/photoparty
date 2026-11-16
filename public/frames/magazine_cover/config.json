@@ -1,0 +1,264 @@
+{
+  "version": 1,
+  "key": "magazine_cover",
+  "name": {
+    "pt": "Capa de Revista",
+    "en": "Magazine Cover"
+  },
+  "orientations": {
+    "portrait": {
+      "width": 1080,
+      "height": 1350,
+      "background": null,
+      "window": {
+        "x": 30,
+        "y": 30,
+        "w": 1020,
+        "h": 1290
+      },
+      "overlay": "portrait-overlay.png",
+      "texts": [
+        {
+          "id": "magazine_title",
+          "x": 540,
+          "y": 146,
+          "maxWidth": 960,
+          "font": "Playfair Display",
+          "size": 150,
+          "color": "#FFFFFF",
+          "align": "center",
+          "baseline": "middle",
+          "transform": "uppercase",
+          "maxChars": 40,
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Nome da revista",
+            "en": "Magazine name"
+          },
+          "default": {
+            "pt": "PHOTO PARTY",
+            "en": "PHOTO PARTY"
+          },
+          "shadow": {
+            "color": "rgba(0,0,0,0.55)",
+            "blur": 14,
+            "offsetX": 0,
+            "offsetY": 2
+          }
+        },
+        {
+          "id": "issue_date",
+          "x": 540,
+          "y": 258,
+          "maxWidth": 700,
+          "font": "Inter",
+          "size": 28,
+          "color": "#FFFFFF",
+          "align": "center",
+          "baseline": "middle",
+          "transform": "uppercase",
+          "maxChars": 40,
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Data da edição",
+            "en": "Issue date"
+          },
+          "default": {
+            "pt": "NOVEMBRO 2026",
+            "en": "NOVEMBER 2026"
+          },
+          "shadow": {
+            "color": "rgba(0,0,0,0.55)",
+            "blur": 6,
+            "offsetX": 0,
+            "offsetY": 2
+          }
+        },
+        {
+          "id": "headline_1",
+          "x": 72,
+          "y": 996,
+          "maxWidth": 710,
+          "font": "Anton",
+          "size": 86,
+          "color": "#FFFFFF",
+          "align": "left",
+          "baseline": "middle",
+          "transform": "uppercase",
+          "maxChars": 40,
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Manchete 1",
+            "en": "Headline 1"
+          },
+          "default": {
+            "pt": "A NOITE DO ANO",
+            "en": "THE PARTY OF THE YEAR"
+          },
+          "shadow": {
+            "color": "rgba(0,0,0,0.35)",
+            "blur": 4,
+            "offsetX": 0,
+            "offsetY": 2
+          }
+        },
+        {
+          "id": "headline_2",
+          "x": 72,
+          "y": 1100,
+          "maxWidth": 700,
+          "font": "Playfair Display",
+          "size": 48,
+          "color": "#FFFFFF",
+          "align": "left",
+          "baseline": "middle",
+          "transform": null,
+          "maxChars": 40,
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Manchete 2",
+            "en": "Headline 2"
+          },
+          "default": {
+            "pt": "Os melhores momentos da festa",
+            "en": "The best moments of the night"
+          },
+          "shadow": {
+            "color": "rgba(0,0,0,0.55)",
+            "blur": 10,
+            "offsetX": 0,
+            "offsetY": 2
+          }
+        }
+      ],
+      "effect": null
+    },
+    "landscape": {
+      "width": 1920,
+      "height": 1080,
+      "background": null,
+      "window": {
+        "x": 24,
+        "y": 24,
+        "w": 1872,
+        "h": 1032
+      },
+      "overlay": "landscape-overlay.png",
+      "texts": [
+        {
+          "id": "magazine_title",
+          "x": 960,
+          "y": 140,
+          "maxWidth": 1500,
+          "font": "Playfair Display",
+          "size": 176,
+          "color": "#FFFFFF",
+          "align": "center",
+          "baseline": "middle",
+          "transform": "uppercase",
+          "maxChars": 40,
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Nome da revista",
+            "en": "Magazine name"
+          },
+          "default": {
+            "pt": "PHOTO PARTY",
+            "en": "PHOTO PARTY"
+          },
+          "shadow": {
+            "color": "rgba(0,0,0,0.55)",
+            "blur": 14,
+            "offsetX": 0,
+            "offsetY": 2
+          }
+        },
+        {
+          "id": "issue_date",
+          "x": 960,
+          "y": 238,
+          "maxWidth": 900,
+          "font": "Inter",
+          "size": 30,
+          "color": "#FFFFFF",
+          "align": "center",
+          "baseline": "middle",
+          "transform": "uppercase",
+          "maxChars": 40,
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Data da edição",
+            "en": "Issue date"
+          },
+          "default": {
+            "pt": "NOVEMBRO 2026",
+            "en": "NOVEMBER 2026"
+          },
+          "shadow": {
+            "color": "rgba(0,0,0,0.55)",
+            "blur": 6,
+            "offsetX": 0,
+            "offsetY": 2
+          }
+        },
+        {
+          "id": "headline_1",
+          "x": 80,
+          "y": 848,
+          "maxWidth": 980,
+          "font": "Anton",
+          "size": 80,
+          "color": "#FFFFFF",
+          "align": "left",
+          "baseline": "middle",
+          "transform": "uppercase",
+          "maxChars": 40,
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Manchete 1",
+            "en": "Headline 1"
+          },
+          "default": {
+            "pt": "A NOITE DO ANO",
+            "en": "THE PARTY OF THE YEAR"
+          },
+          "shadow": {
+            "color": "rgba(0,0,0,0.35)",
+            "blur": 4,
+            "offsetX": 0,
+            "offsetY": 2
+          }
+        },
+        {
+          "id": "headline_2",
+          "x": 80,
+          "y": 954,
+          "maxWidth": 980,
+          "font": "Playfair Display",
+          "size": 48,
+          "color": "#FFFFFF",
+          "align": "left",
+          "baseline": "middle",
+          "transform": null,
+          "maxChars": 40,
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Manchete 2",
+            "en": "Headline 2"
+          },
+          "default": {
+            "pt": "Os melhores momentos da festa",
+            "en": "The best moments of the night"
+          },
+          "shadow": {
+            "color": "rgba(0,0,0,0.55)",
+            "blur": 10,
+            "offsetX": 0,
+            "offsetY": 2
+          }
+        }
+      ],
+      "effect": null
+    }
+  }
+}

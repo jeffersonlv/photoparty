@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="csrf-token" content="demo-csrf-token">
+  <!-- CSP equivalente a do backend: prova que nada depende de inline/eval -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'self'">
+  <title>Photo Party — demo do convidado</title>
+  <!--@gp-i18n-->
+  <link rel="stylesheet" href="./demo.css">
+  <script type="module" src="./main.js"></script>
+</head>
+<body class="gp-body">
+  <!--@gp-app-->
+
+  <!-- Painel so da demo: mostra o que "chegaria" ao servidor -->
+  <aside id="demo-log">
+    <strong>Demo (sem backend).</strong> Parametros: <code>?fail=500</code> (falha 2x e recupera),
+    <code>?fail=410</code>, <code>?fail=429</code>, <code>?fail=422</code>, <code>?moderation=0</code>.
+    <ol id="demo-log-list"></ol>
+  </aside>
+</body>
+</html>

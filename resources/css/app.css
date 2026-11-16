@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .input {
+        @apply mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500;
+    }
+
+    .checkbox {
+        @apply h-4 w-4 rounded border-slate-300 text-indigo-600;
+    }
+
+    .card {
+        @apply rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200;
+    }
+
+    .link {
+        @apply text-indigo-600 hover:text-indigo-800 underline-offset-2 hover:underline;
+    }
+
+    /* Honeypot: fora da tela para humanos, presente para robôs. */
+    .hp-field {
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+    }
+}

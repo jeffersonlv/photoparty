@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "key": "test_sepia",
+  "name": {
+    "pt": "Cartaz sépia (teste)",
+    "en": "Sepia poster (test)"
+  },
+  "orientations": {
+    "portrait": {
+      "width": 1080,
+      "height": 1350,
+      "background": "portrait-bg.png",
+      "window": {
+        "x": 90,
+        "y": 170,
+        "w": 900,
+        "h": 700
+      },
+      "overlay": "portrait-overlay.png",
+      "texts": [
+        {
+          "id": "guest_name",
+          "x": 540,
+          "y": 1150,
+          "maxWidth": 900,
+          "font": "Inter",
+          "size": 64,
+          "color": "#FFD166",
+          "align": "center",
+          "baseline": "middle",
+          "transform": "uppercase",
+          "maxChars": 24,
+          "filledBy": "guest",
+          "label": {
+            "pt": "Seu nome",
+            "en": "Your name"
+          },
+          "default": {
+            "pt": "SEU NOME",
+            "en": "YOUR NAME"
+          },
+          "shadow": {
+            "color": "rgba(0,0,0,0.6)",
+            "blur": 12,
+            "offsetX": 0,
+            "offsetY": 0
+          }
+        }
+      ],
+      "effect": {
+        "type": "sepia"
+      }
+    },
+    "landscape": {
+      "width": 1920,
+      "height": 1080,
+      "background": "landscape-bg.png",
+      "window": {
+        "x": 60,
+        "y": 60,
+        "w": 1180,
+        "h": 960
+      },
+      "overlay": "landscape-overlay.png",
+      "texts": [
+        {
+          "id": "guest_name",
+          "x": 1580,
+          "y": 640,
+          "maxWidth": 560,
+          "font": "Inter",
+          "size": 56,
+          "color": "#FFD166",
+          "align": "center",
+          "baseline": "middle",
+          "transform": "uppercase",
+          "maxChars": 24,
+          "filledBy": "guest",
+          "label": {
+            "pt": "Seu nome",
+            "en": "Your name"
+          },
+          "default": {
+            "pt": "SEU NOME",
+            "en": "YOUR NAME"
+          },
+          "shadow": {
+            "color": "rgba(0,0,0,0.6)",
+            "blur": 12,
+            "offsetX": 0,
+            "offsetY": 0
+          }
+        }
+      ],
+      "effect": {
+        "type": "sepia"
+      }
+    }
+  }
+}

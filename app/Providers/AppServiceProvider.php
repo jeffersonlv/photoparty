@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        //
+    }
+
+    public function boot(): void
+    {
+        // Senha forte (OWASP A07). Sem uncompromised(): consultaria API externa.
+        Password::defaults(function () {
+            return Password::min(10)->letters()->mixedCase()->numbers()->symbols();
+        });
+
+        // Cadastro: poucas tentativas por IP (anti-robô, SPEC 7).
+        RateLimiter::for('register', function (Request $request) {
+            return Limit::perHour((int) config('photoparty.rate_limits.register_per_hour'))->by('register|'.$request->ip());
+        });
+
+        // Login: limite grosso por IP; o limite fino por e-mail+IP fica no LoginRequest.
+        RateLimiter::for('login', function (Request $request) {
+            return Limit::perMinute(20)->by('login|'.$request->ip());
+        });
+
+        RateLimiter::for('password-reset', function (Request $request) {
+            return Limit::perMinute(5)->by('password-reset|'.$request->ip());
+        });
+    }
+}

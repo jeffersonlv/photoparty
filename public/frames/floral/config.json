@@ -1,0 +1,128 @@
+{
+  "version": 1,
+  "key": "floral",
+  "name": {
+    "pt": "Floral",
+    "en": "Floral"
+  },
+  "orientations": {
+    "portrait": {
+      "width": 1080,
+      "height": 1350,
+      "background": "portrait-bg.png",
+      "window": {
+        "x": 96,
+        "y": 150,
+        "w": 888,
+        "h": 880
+      },
+      "overlay": "portrait-overlay.png",
+      "texts": [
+        {
+          "id": "event_name",
+          "x": 540,
+          "y": 1148,
+          "maxWidth": 640,
+          "font": "Great Vibes",
+          "size": 128,
+          "color": "#8A4B5A",
+          "align": "center",
+          "baseline": "middle",
+          "transform": null,
+          "maxChars": 40,
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Nome do evento",
+            "en": "Event name"
+          },
+          "default": {
+            "pt": "Ana & Pedro",
+            "en": "Ana & Pedro"
+          }
+        },
+        {
+          "id": "event_date",
+          "x": 540,
+          "y": 1262,
+          "maxWidth": 640,
+          "font": "Playfair Display",
+          "size": 38,
+          "color": "#6B5A4E",
+          "align": "center",
+          "baseline": "middle",
+          "transform": "uppercase",
+          "maxChars": 40,
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Data do evento",
+            "en": "Event date"
+          },
+          "default": {
+            "pt": "12 DE DEZEMBRO DE 2026",
+            "en": "DECEMBER 12, 2026"
+          }
+        }
+      ],
+      "effect": null
+    },
+    "landscape": {
+      "width": 1920,
+      "height": 1080,
+      "background": "landscape-bg.png",
+      "window": {
+        "x": 330,
+        "y": 56,
+        "w": 1260,
+        "h": 724
+      },
+      "overlay": "landscape-overlay.png",
+      "texts": [
+        {
+          "id": "event_name",
+          "x": 960,
+          "y": 878,
+          "maxWidth": 900,
+          "font": "Great Vibes",
+          "size": 124,
+          "color": "#8A4B5A",
+          "align": "center",
+          "baseline": "middle",
+          "transform": null,
+          "maxChars": 40,
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Nome do evento",
+            "en": "Event name"
+          },
+          "default": {
+            "pt": "Ana & Pedro",
+            "en": "Ana & Pedro"
+          }
+        },
+        {
+          "id": "event_date",
+          "x": 960,
+          "y": 992,
+          "maxWidth": 900,
+          "font": "Playfair Display",
+          "size": 40,
+          "color": "#6B5A4E",
+          "align": "center",
+          "baseline": "middle",
+          "transform": "uppercase",
+          "maxChars": 40,
+          "filledBy": "organizer",
+          "label": {
+            "pt": "Data do evento",
+            "en": "Event date"
+          },
+          "default": {
+            "pt": "12 DE DEZEMBRO DE 2026",
+            "en": "DECEMBER 12, 2026"
+          }
+        }
+      ],
+      "effect": null
+    }
+  }
+}

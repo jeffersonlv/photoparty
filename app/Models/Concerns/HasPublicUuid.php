@@ -7,8 +7,8 @@ use Illuminate\Support\Str;
 /**
  * Chave pública UUID v4 aleatória (coluna "uuid"), usada nas URLs.
  *
- * Não usamos HasUuids do Laravel porque no Laravel 11 ele gera UUIDs
- * ordenados por tempo; a SPEC pede v4 aleatório (Str::uuid()).
+ * Não usamos HasUuids do Laravel porque a partir do Laravel 12 ele gera UUID v7
+ * (ordenado por tempo); a SPEC pede v4 aleatório (Str::uuid()).
  * O id sequencial continua sendo a chave primária interna e nunca aparece em URL.
  */
 trait HasPublicUuid

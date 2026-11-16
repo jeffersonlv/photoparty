@@ -3,13 +3,15 @@
 namespace App\Services;
 
 use chillerlan\QRCode\Common\EccLevel;
-use chillerlan\QRCode\Output\QROutputInterface;
+use chillerlan\QRCode\Output\QRGdImagePNG;
+use chillerlan\QRCode\Output\QRMarkupSVG;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use InvalidArgumentException;
 
 /**
- * QR code gerado localmente com chillerlan/php-qrcode (sem API externa).
+ * QR code gerado localmente com chillerlan/php-qrcode v6 (sem API externa).
+ * Na v6 o formato é escolhido pela classe de saída (`outputInterface`).
  */
 class QrCodeGenerator
 {
@@ -19,14 +21,14 @@ class QrCodeGenerator
     {
         $options = match ($format) {
             'png' => new QROptions([
-                'outputType' => QROutputInterface::GDIMAGE_PNG,
+                'outputInterface' => QRGdImagePNG::class,
                 'outputBase64' => false,
                 'eccLevel' => EccLevel::M,
                 'scale' => 12,
                 'quietzoneSize' => 4,
             ]),
             'svg' => new QROptions([
-                'outputType' => QROutputInterface::MARKUP_SVG,
+                'outputInterface' => QRMarkupSVG::class,
                 'outputBase64' => false,
                 'eccLevel' => EccLevel::M,
                 'quietzoneSize' => 4,

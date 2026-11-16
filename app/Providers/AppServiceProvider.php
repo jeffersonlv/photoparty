@@ -37,6 +37,16 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(20)->by('login|'.$request->ip());
         });
 
+        // Telão (sem login): polling de 5 s = 12/min por tela; folga para várias telas no mesmo IP.
+        RateLimiter::for('screen', function (Request $request) {
+            return Limit::perMinute(120)->by('screen|'.$request->ip());
+        });
+
+        // Moderação ao vivo: polling de 5 s + ações do organizador.
+        RateLimiter::for('moderation', function (Request $request) {
+            return Limit::perMinute(180)->by('moderation|'.($request->user()?->getKey() ?? $request->ip()));
+        });
+
         RateLimiter::for('password-reset', function (Request $request) {
             return Limit::perMinute(5)->by('password-reset|'.$request->ip());
         });

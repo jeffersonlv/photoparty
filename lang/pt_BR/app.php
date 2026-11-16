@@ -135,6 +135,8 @@ return [
         'qr_png' => 'Baixar PNG',
         'qr_svg' => 'Baixar SVG',
         'guest_link' => 'Link do convidado',
+        'moderation_link' => 'Moderação',
+        'open_screen' => 'Abrir telão',
         'screen_title' => 'Telão',
         'screen_text' => 'Abra este link na TV ou no computador ligado ao projetor.',
         'screen_link' => 'Link do telão',

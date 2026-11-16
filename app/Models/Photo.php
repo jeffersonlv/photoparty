@@ -23,6 +23,11 @@ class Photo extends Model
         'guest_texts',
     ];
 
+    /**
+     * Microssegundos: o cursor do telão usa (approved_at, id) como ordem estável.
+     */
+    protected $dateFormat = 'Y-m-d H:i:s.u';
+
     protected $hidden = ['id', 'account_id', 'event_id', 'device_hash', 'original_path', 'thumb_path'];
 
     protected $attributes = [

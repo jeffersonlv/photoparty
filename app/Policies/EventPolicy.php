@@ -11,7 +11,7 @@ use Illuminate\Auth\Access\Response;
  * Autorização de eventos. Recurso de outra conta => 404 (nunca 403),
  * para não revelar que o recurso existe (CLAUDE.md, regra 1).
  *
- * Papéis: owner gerencia tudo; moderator só visualiza (moderação vem no módulo 6).
+ * Papéis: owner gerencia tudo; moderator visualiza e modera fotos (ability moderate).
  */
 class EventPolicy
 {
@@ -63,6 +63,17 @@ class EventPolicy
     public function manageTokens(User $user, Event $event): Response
     {
         return $this->sameAccount($user, $event) ?? $this->ownerOnly($user) ?? Response::allow();
+    }
+
+    /**
+     * Moderar fotos (módulo 6): owner e moderator da conta. Evento expirado não tem mais fotos.
+     */
+    public function moderate(User $user, Event $event): Response
+    {
+        return $this->sameAccount($user, $event)
+            ?? ($event->computeStatus() === EventStatus::Expired
+                ? Response::deny(__('app.errors.event_finished'))
+                : Response::allow());
     }
 
     public function downloadQr(User $user, Event $event): Response

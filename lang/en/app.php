@@ -135,6 +135,8 @@ return [
         'qr_png' => 'Download PNG',
         'qr_svg' => 'Download SVG',
         'guest_link' => 'Guest link',
+        'moderation_link' => 'Moderation',
+        'open_screen' => 'Open screen',
         'screen_title' => 'Big screen',
         'screen_text' => 'Open this link on the TV or the computer connected to the projector.',
         'screen_link' => 'Screen link',

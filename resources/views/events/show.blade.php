@@ -12,6 +12,16 @@
         </div>
 
         <div class="flex flex-wrap gap-2">
+            @can('moderate', $event)
+                <a href="{{ route('events.moderation', $event) }}" class="inline-flex rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50">{{ __('app.events.moderation_link') }} ({{ $event->photos()->where('status', 'pending')->count() }})</a>
+            @endcan
+
+            @can('manageTokens', $event)
+                @unless ($event->isDraft())
+                    <a href="{{ route('screen.show', ['token' => $event->screenToken()], false) }}" target="_blank" rel="noopener noreferrer" class="inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">{{ __('app.events.open_screen') }}</a>
+                @endunless
+            @endcan
+
             @can('update', $event)
                 <a href="{{ route('events.edit', $event) }}" class="inline-flex rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50">{{ __('app.events.edit') }}</a>
             @endcan

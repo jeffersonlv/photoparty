@@ -21,7 +21,10 @@ class SecurityHeaders
         $headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         $headers->set('X-Frame-Options', 'DENY');
         $headers->set('X-Content-Type-Options', 'nosniff');
-        $headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        // Rotas com token na URL (telão) definem 'no-referrer' por conta própria.
+        if (! $headers->has('Referrer-Policy')) {
+            $headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        }
         $headers->set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=(), payment=(), usb=()');
         $headers->set('Cross-Origin-Opener-Policy', 'same-origin');
         $headers->remove('X-Powered-By');

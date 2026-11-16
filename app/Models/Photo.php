@@ -6,6 +6,7 @@ use App\Models\Concerns\BelongsToAccount;
 use App\Models\Concerns\HasPublicUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\URL;
 
 /**
  * Foto enviada por convidado. (Módulos 4 e 6 implementam upload e moderação.)
@@ -45,5 +46,48 @@ class Photo extends Model
     public function frame(): BelongsTo
     {
         return $this->belongsTo(Frame::class);
+    }
+
+    public const VARIANTS = ['thumb', 'original'];
+
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === 'approved';
+    }
+
+    public function pathFor(string $variant): ?string
+    {
+        return match ($variant) {
+            'original' => $this->original_path,
+            'thumb' => $this->thumb_path,
+            default => null,
+        };
+    }
+
+    /**
+     * URL para o painel (usuário logado; PhotoPolicy decide). Rota media.show.
+     */
+    public function mediaUrl(string $variant = 'thumb'): string
+    {
+        return route('media.show', ['photo' => $this->uuid, 'variant' => $variant], false);
+    }
+
+    /**
+     * URL assinada e temporária (telão, sem login). Relativa: a assinatura não depende
+     * do host. Só serve foto aprovada. Rota media.signed.
+     */
+    public function signedMediaUrl(string $variant = 'thumb', int $minutes = 10): string
+    {
+        return URL::temporarySignedRoute(
+            'media.signed',
+            now()->addMinutes($minutes),
+            ['photo' => $this->uuid, 'variant' => $variant],
+            false,
+        );
     }
 }

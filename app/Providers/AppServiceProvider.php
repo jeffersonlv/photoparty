@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -17,6 +19,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Alias registrado aqui (e não em bootstrap/app.php) para o módulo admin ficar isolado.
+        Route::aliasMiddleware('admin', EnsureUserIsAdmin::class);
+
         // Senha forte (OWASP A07). Sem uncompromised(): consultaria API externa.
         Password::defaults(function () {
             return Password::min(10)->letters()->mixedCase()->numbers()->symbols();

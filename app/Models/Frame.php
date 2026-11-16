@@ -38,6 +38,33 @@ class Frame extends Model
         return $this->belongsToMany(Event::class)->withPivot('sort_order');
     }
 
+    /**
+     * Chave pública usada pela página do convidado (frame_key do upload):
+     * template_key nos modelos prontos, uuid nas molduras do organizador.
+     */
+    public function publicKey(): string
+    {
+        return $this->template_key ?? $this->uuid;
+    }
+
+    /**
+     * Textos que o convidado pode preencher numa orientação: [id => maxChars].
+     *
+     * @return array<string, int>
+     */
+    public function guestTextLimits(string $orientation): array
+    {
+        $limits = [];
+
+        foreach ($this->config['orientations'][$orientation]['texts'] ?? [] as $text) {
+            if (($text['filledBy'] ?? null) === 'guest' && is_string($text['id'] ?? null)) {
+                $limits[$text['id']] = min((int) ($text['maxChars'] ?? 40), 40);
+            }
+        }
+
+        return $limits;
+    }
+
     public function isSystem(): bool
     {
         return $this->account_id === null;

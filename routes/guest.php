@@ -1,0 +1,48 @@
+<?php
+
+use App\Http\Controllers\Guest\GuestEventController;
+use App\Http\Controllers\Guest\GuestPhotoController;
+use App\Http\Controllers\MediaController;
+use App\Http\Middleware\GuardMediaNotFound;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Módulos 3-4: convidado e mídia (carregado com o grupo "web" por bootstrap/app.php)
+|--------------------------------------------------------------------------
+|
+| Convidado: o evento é localizado por slug + hash do token (?t=). account_id e
+| event_id saem do evento, nunca do request. Token inválido => 404.
+|
+| Mídia: fotos nunca ficam em public/. media.show exige login + PhotoPolicy;
+| media.signed é para o telão (URL assinada relativa, 10 min: Photo::signedMediaUrl()).
+|
+*/
+
+$uuid = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
+$slug = '[a-z0-9-]{1,80}';
+
+Route::get('/e/{slug}', [GuestEventController::class, 'show'])
+    ->where('slug', $slug)
+    ->middleware('throttle:guest-page')
+    ->name('guest.show');
+
+Route::post('/e/{slug}/photos', [GuestPhotoController::class, 'store'])
+    ->where('slug', $slug)
+    ->middleware('throttle:guest-upload')
+    ->name('guest.photos.store');
+
+Route::delete('/e/{slug}/photos/{photo}', [GuestPhotoController::class, 'destroy'])
+    ->where(['slug' => $slug, 'photo' => $uuid])
+    ->middleware('throttle:guest-upload')
+    ->name('guest.photos.destroy');
+
+Route::get('/media/{photo}/{variant}', [MediaController::class, 'show'])
+    ->where(['photo' => $uuid, 'variant' => 'thumb|original'])
+    ->middleware(['auth', GuardMediaNotFound::class, 'throttle:media'])
+    ->name('media.show');
+
+Route::get('/media/signed/{photo}/{variant}', [MediaController::class, 'signed'])
+    ->where(['photo' => $uuid, 'variant' => 'thumb|original'])
+    ->middleware([GuardMediaNotFound::class, 'signed:relative', 'throttle:media'])
+    ->name('media.signed');

@@ -52,6 +52,21 @@ Senha de todos: valor de `SEED_PASSWORD` no `.env` (padrão `Password!123`). O s
 | `moderator-a@demo.test` | moderator | A |
 | `owner-b@demo.test` | owner | B: em teste, 1 rascunho de evento de teste |
 
+## Admin e página inicial (módulo 9/10)
+
+Admin em `/admin` (middleware `auth`, `admin`, `verified`; qualquer usuário que não seja admin recebe 404). Rotas em `routes/admin.php`; a página pública em `routes/home.php`.
+
+- **Contas:** busca e filtro por status, uso (eventos, fotos, espaço), mudar plano, ativar/suspender, estender teste (+N horas).
+- **Planos:** CRUD completo, incluindo `is_public` (a home lê apenas os públicos).
+- **Molduras do sistema:** ativar/desativar e ordenar (upload de novos modelos fica para depois).
+- **Auditoria:** `audit_logs` paginado com filtros; toda ação do admin passa por `App\Services\AuditLogger`.
+- **Página inicial (`/admin/home`):** seções com toggle e ordem, conteúdo por idioma (pt_BR/en) com campos definidos em `config/home_sections.php`, itens repetíveis, botão Visualizar (sem salvar), SEO e contato. O conteúdo é texto puro, sempre escapado.
+- **Home pública (`/`):** só seções ativas, em cache de arquivo por idioma (limpo ao salvar no admin). Rodapé com Termos (`/termos`) e Privacidade (`/privacidade`) sempre presente; os textos são provisórios e precisam de revisão jurídica.
+- **Conteúdo inicial:** `php artisan db:seed --class=HomeSeeder` (idempotente, seguro em produção; não sobrescreve edições).
+- **Demonstração ao vivo** do hero: por enquanto um bloco estático (`#live-demo`).
+
+Credenciais de demonstração do seeder (apenas local): `admin@photoparty.test` com a senha de `SEED_PASSWORD` (padrão `Password!123`); acesse `/login` e depois `/admin`.
+
 ## Deploy no Hostinger
 
 - **Versão do PHP por site:** no hPanel, defina **PHP 8.3** para o subdomínio `photo.uailabs.net`. A versão é configurada por site; o `uailabs.net` continua em 8.2.
@@ -99,6 +114,15 @@ O agendamento (`routes/console.php`) roda, nesta ordem: `accounts:expire-trials`
 - Regras do teste grátis no servidor (`App\Services\EventScheduler`).
 - `EventPolicy` + `scopeBindings()`; recurso de outra conta responde 404.
 
+**Convidado e mídia (módulos 3-4)** — rotas em `routes/guest.php`
+
+- `FrameSeeder` registra os 4 modelos de `public/frames/<key>/config.json` como molduras do sistema (`account_id` nulo, `type = template`); idempotente e chamado pelo `DatabaseSeeder` (em produção: `php artisan db:seed --class=FrameSeeder --force`). Todo evento novo ativa esses modelos (`Event::attachDefaultFrames()`, hook `created`).
+- `GET /e/{slug}?t=…` (`guest.show`): evento por slug + hash do token (token errado, de outro evento ou ausente → 404). `draft`/`expired` → 404; `scheduled` → página "começa em…"; `ended` → "Este evento já terminou" (HTTP 410); `live` → app do convidado (`guest/show.blade.php`) no idioma do evento. Cria o cookie anônimo do aparelho `pp_device` (aleatório, criptografado, httponly, secure, samesite=lax, 1 ano); no banco fica só o HMAC (`photos.device_hash`).
+- `POST /e/{slug}/photos?t=…` (`guest.photos.store`): 201 `{uuid, status}`. Servidor decide tudo: evento fora do ar → 410; limite de fotos do evento (20 no teste, plano nos demais) ou `max_photos_per_guest` por aparelho → 429; rate limit `guest-upload` (6/min por aparelho, 60/min por IP) → 429; validação (`finfo` + `getimagesize`, JPEG/PNG/WebP, foto ≤ 3 MB e 1080×1350 ou 1920×1080 conforme a orientação, miniatura ≤ 300 KB e ≤ 400 px no lado maior, `frame_key` vazio ou ativo no evento, textos do convidado só nos campos `filledBy: guest` da moldura/orientação, ≤ `maxChars`, sem HTML) → 422. Foto e miniatura são reencodadas com GD para JPEG (sem EXIF/GPS nem conteúdo embutido) e gravadas em `storage/app/private/tenants/{account_uuid}/events/{event_uuid}/{original|thumb}/{photo_uuid}.jpg` dentro da transação do registro; em falha os arquivos são apagados. Disco cheio/erro de escrita → 507. Status `pending` (moderação prévia) ou `approved` + `approved_at` (posterior).
+- `DELETE /e/{slug}/photos/{photo}?t=…` (`guest.photos.destroy`): o convidado apaga a própria foto pendente (confere `device_hash`); de outro aparelho → 404, já aprovada → 409.
+- `GET /media/{photo}/{variant}` (`media.show`, `variant` = `thumb|original`): login + `PhotoPolicy` (mesma conta, owner ou moderator; admin permitido e auditado em `audit_logs`; outra conta → 404). `GET /media/signed/{photo}/{variant}` (`media.signed`): URL assinada **relativa** de 10 min para o telão, só fotos aprovadas de evento não expirado — gere com `Photo::signedMediaUrl('thumb')`; no painel use `Photo::mediaUrl('thumb')`. Conta `trial_ended` só recebe `thumb` (original → 404). Headers `Content-Type: image/jpeg`, `Cache-Control: private, max-age=600`, `X-Content-Type-Options: nosniff`.
+- Rajadas de 404/403 em `/media`: middleware `GuardMediaNotFound` (20 por minuto por IP → log no canal `security`, `storage/logs/security-*.log`, e 429 até a janela acabar) + throttle nomeado `media`.
+
 ## Decisões tomadas
 
 1. **Isolamento.** `BelongsToAccount` filtra toda consulta por `account_id` do usuário autenticado. Usuário autenticado sem conta que não seja admin não vê nada; admin não é filtrado (necessário para o módulo 9 — a área do admin precisa de policies próprias e auditoria). Sem usuário autenticado (cron, fila, rotas por token do convidado/telão) não há filtro: nesses fluxos o tenant vem do evento localizado pelo token. `account_id` não é mass-assignable (a trait o remove do `$fillable`) e, com usuário autenticado, gravar em outra conta lança `LogicException`. A policy repete a checagem e usa `Response::denyAsNotFound()`.
@@ -112,13 +136,20 @@ O agendamento (`routes/console.php`) roda, nesta ordem: `accounts:expire-trials`
 9. **Alpine com CSP estrita.** Usamos o build `@alpinejs/csp` (sem `eval`), então a lógica fica em `Alpine.data()` em `resources/js/app.js` e o HTML só referencia propriedades e métodos. Nenhum CDN nem fonte externa.
 10. **Verificação de e-mail** é enviada diretamente no cadastro (`sendEmailVerificationNotification`), sem disparar `Registered`, para não haver envio duplicado.
 11. **Auditoria:** cadastro, login (sucesso/falha, com e-mail em hash), logout, redefinição de senha, criar/editar/publicar/encerrar/excluir evento, novo token do telão e fim do teste vão para `audit_logs`.
+12. **Caminho das fotos.** Mantido o disco `local` do Laravel 13 (`storage/app/private`), então os arquivos ficam em `storage/app/private/tenants/...` (fora de `public/`). A rota automática `/storage/...` do disco local foi desligada (`'serve' => false`): imagens só saem por `/media`.
+13. **Upload sem eventos de model.** A foto do convidado é salva com `Photo::withoutEvents()` e `account_id`/`event_id`/`uuid` atribuídos a partir do evento do token, porque o hook da `BelongsToAccount` recusaria gravar se o aparelho tiver um organizador de outra conta logado. Consultas do fluxo do convidado usam `withoutGlobalScopes()` pelo mesmo motivo. Observers futuros em `Photo::created` não disparam nesse fluxo.
+14. **Limites em transação.** Contagem de fotos (evento e aparelho) e gravação acontecem dentro de `DB::transaction` com `lockForUpdate()` no evento, para envios simultâneos não furarem o limite.
+15. **Rotas de mídia sem route model binding:** `{photo}` é resolvido no controller para que todo 404 passe pelo `GuardMediaNotFound`. URLs assinadas são relativas (`signed:relative`) para não depender do host/`APP_URL`.
+16. **Filtros aceitos no upload:** `none`, `bw`, `vintage`, `sepia`, `vivid`, `warm`, `cool` (o front usa `vintage`; o config usa `sepia`).
 
 ## Pendências e observações
 
 - Os testes PHP não foram executados no ambiente onde o código foi escrito (sem acesso ao Packagist). Rode `composer install` e `php artisan test`; os testes de QR precisam da extensão `gd`. Gere e versione o `composer.lock`.
 - Migração do Laravel 11 para o 13 (o Composer bloqueia as versões 11 e 12 por avisos de segurança): config e arquivos base sincronizados com o skeleton 13 mantendo as customizações. Efeitos: sessão serializada em JSON (`config/session.php`) e cache sem desserializar objetos PHP (`serializable_classes => false`); nome do cookie de sessão e prefixo de cache passam a usar hífen (todos precisam entrar de novo); o middleware de CSRF agora se chama `PreventRequestForgery` e também confere o header `Sec-Fetch-Site`; o `APP_TIMEZONE` continua sendo lido do `.env` (o skeleton 13 fixa UTC, mantivemos o env); no `chillerlan/php-qrcode` 6 o formato é escolhido por `outputInterface`.
-- O disco `local` (Laravel 11+) aponta para `storage/app/private`; o módulo 4 deve decidir se o caminho dos tenants fica em `storage/app/private/tenants/...` ou ajustar o disco para bater com o SPEC (`storage/app/tenants/...`).
 - Laravel 13 com PHP 8.4 permitiria Pest 5 (exige PHP 8.4 e PHPUnit 13); mantivemos Pest 4 por compatibilidade com PHP 8.3.
-- Antes era: `composer.json` com `chillerlan/php-qrcode`, Pest e `ext-gd`; `package.json` com `@alpinejs/csp`. aponta para `storage/app/private`; o módulo 4 deve decidir se o caminho dos tenants fica em `storage/app/private/tenants/...` ou ajustar o disco para bater com o SPEC (`storage/app/tenants/...`).
-- Rotas do convidado (`/e/{slug}`), telão (`/screen/{token}`), mídia, moderação e exportação estão só como comentários em `routes/web.php`. Use `Event::whereUploadToken()` / `Event::whereScreenToken()` para localizar o evento.
+- Antes era: `composer.json` com `chillerlan/php-qrcode`, Pest e `ext-gd`; `package.json` com `@alpinejs/csp`.
+- Telão (`/screen/{token}`), moderação e exportação ainda não implementados. Use `Event::whereScreenToken()` para localizar o evento e `Photo::signedMediaUrl()` para as imagens do telão.
+- **PHP do servidor:** o upload aceita foto de até 3 MB; confira `upload_max_filesize` ≥ 4M e `post_max_size` ≥ 8M no PHP 8.3 do subdomínio.
+- Página do convidado envia só os modelos prontos; molduras do organizador (custom) entram no módulo 8 (precisam de uma `configUrl` servida pelo servidor). Textos do organizador nas molduras usam nome/data do evento e os `default` do config até o módulo 8 permitir editar.
+- Limpeza de arquivos órfãos (cron) e apagar arquivos ao excluir evento: módulo 11.
 - Molduras no formulário do evento: módulo 8 (a tabela `event_frame` já existe).

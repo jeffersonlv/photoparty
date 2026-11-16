@@ -89,7 +89,49 @@ class Event extends Model
                 $event->issueScreenToken();
             }
         });
+
+        // Por padrão, todo evento novo nasce com os modelos prontos do sistema ativos.
+        static::created(function (Event $event) {
+            $event->attachDefaultFrames();
+        });
     }
+
+    /**
+     * Ativa no evento as molduras-modelo do sistema (account_id nulo, type template),
+     * na ordem de FrameSeeder::TEMPLATE_KEYS. Sem modelos cadastrados, não faz nada.
+     */
+    public function attachDefaultFrames(): void
+    {
+        $order = array_flip(\Database\Seeders\FrameSeeder::TEMPLATE_KEYS);
+
+        $frames = Frame::withoutGlobalScopes()
+            ->whereNull('account_id')
+            ->where('type', 'template')
+            ->where('is_active', true)
+            ->get(['id', 'template_key'])
+            ->sortBy(fn (Frame $frame) => $order[$frame->template_key] ?? PHP_INT_MAX)
+            ->values();
+
+        if ($frames->isEmpty()) {
+            return;
+        }
+
+        $this->frames()->syncWithoutDetaching(
+            $frames->mapWithKeys(fn (Frame $frame, int $i) => [$frame->id => ['sort_order' => $i]])->all(),
+        );
+    }
+
+    /**
+     * Molduras ativas do evento, ignorando o global scope da conta (rotas por token).
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, Frame>
+     */
+    public function activeFrames(): \Illuminate\Database\Eloquent\Collection
+    {
+        // Moldura desativada pelo admin some para o convidado, mesmo se já ligada ao evento.
+        return $this->frames()->withoutGlobalScopes()->where('frames.is_active', true)->get();
+    }
+
 
     // ---------------------------------------------------------------- relações
 

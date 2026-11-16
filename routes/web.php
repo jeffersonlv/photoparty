@@ -9,8 +9,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\LocaleController;
 use Illuminate\Support\Facades\Route;
 
-// Página inicial administrável: módulo 10 (fora deste módulo).
-Route::get('/', fn () => auth()->check() ? redirect()->route('dashboard') : redirect()->route('login'))->name('home');
+// A rota '/' (nome 'home') vive em routes/home.php.
 
 Route::get('/locale/{locale}', LocaleController::class)->name('locale');
 

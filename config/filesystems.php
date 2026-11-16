@@ -33,7 +33,8 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // Sem rota /storage para o disco privado: fotos saem só por /media (policy ou URL assinada).
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],

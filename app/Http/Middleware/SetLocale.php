@@ -16,9 +16,11 @@ class SetLocale
     {
         $locale = $request->hasSession() ? $request->session()->get('locale') : null;
 
-        if (is_string($locale) && in_array($locale, config('photoparty.locales'), true)) {
-            App::setLocale($locale);
-        }
+        // Sempre define o idioma (padrão da aplicação sem escolha na sessão): evita vazar o
+        // idioma de uma requisição para a seguinte quando a mesma instância é reaproveitada.
+        App::setLocale(is_string($locale) && in_array($locale, config('photoparty.locales'), true)
+            ? $locale
+            : config('app.locale'));
 
         return $next($request);
     }

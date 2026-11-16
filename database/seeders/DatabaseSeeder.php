@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         if (app()->environment('production')) {
-            $this->command?->error('DatabaseSeeder de demonstração não roda em produção. Use --class=PlanSeeder.');
+            $this->command?->error('DatabaseSeeder de demonstração não roda em produção. Use --class=PlanSeeder e --class=HomeSeeder.');
 
             return;
         }
@@ -32,6 +32,9 @@ class DatabaseSeeder extends Seeder
         // No console não há usuário autenticado: o global scope não filtra e
         // account_id é definido explicitamente em cada registro.
         $this->call(PlanSeeder::class);
+        $this->call(HomeSeeder::class);
+        // Antes dos eventos: evento novo ativa os modelos do sistema por padrão.
+        $this->call(FrameSeeder::class);
 
         $password = env('SEED_PASSWORD', 'Password!123');
 

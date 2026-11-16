@@ -17,6 +17,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Confirmação de e-mail no cadastro
+    |--------------------------------------------------------------------------
+    |
+    | Desligada por enquanto (decisão de 16/11/2026). Com false, a conta nasce
+    | verificada e nenhum e-mail é enviado. Para religar: PHOTOPARTY_REQUIRE_EMAIL_VERIFICATION=true.
+    | Atenção: sem confirmação, a regra "um teste por e-mail verificado" fica mais fraca.
+    |
+    */
+
+    'require_email_verification' => (bool) env('PHOTOPARTY_REQUIRE_EMAIL_VERIFICATION', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Teste grátis (SPEC seção 7)
     |--------------------------------------------------------------------------
     */

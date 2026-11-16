@@ -30,6 +30,8 @@ it('renders the registration page', function () {
 });
 
 it('registers an owner with a trial account and sends the verification email', function () {
+    config(['photoparty.require_email_verification' => true]);
+
     $this->post(route('register'), registrationPayload())
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('verification.notice'));
@@ -163,4 +165,22 @@ it('resends the verification email', function () {
     $this->actingAs($user)->post(route('verification.send'))->assertSessionHas('status');
 
     Notification::assertSentTo($user, VerifyEmail::class);
+});
+
+it('skips email confirmation while it is disabled', function () {
+    config(['photoparty.require_email_verification' => false]);
+
+    $this->post(route('register'), [
+        'name' => 'Sem Confirmação',
+        'email' => 'sem-confirmacao@example.com',
+        'password' => 'Str0ng!Passw0rd',
+        'password_confirmation' => 'Str0ng!Passw0rd',
+        'terms' => '1',
+    ])->assertRedirect(route('dashboard'));
+
+    $user = \App\Models\User::where('email', 'sem-confirmacao@example.com')->firstOrFail();
+
+    expect($user->hasVerifiedEmail())->toBeTrue();
+    Notification::assertNothingSentTo($user);
+    $this->get(route('dashboard'))->assertOk();
 });

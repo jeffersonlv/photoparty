@@ -37,20 +37,32 @@ class RegisterController extends Controller
             ]);
             $user->account_id = $account->id;
             $user->role = UserRole::Owner;
+
+            // Confirmação de e-mail desligada (config photoparty.require_email_verification):
+            // a conta já nasce verificada e o middleware 'verified' continua no lugar,
+            // pronto para quando a confirmação for religada.
+            if (! config('photoparty.require_email_verification')) {
+                $user->email_verified_at = now();
+            }
+
             $user->save();
 
             return $user;
         });
 
-        // Envio direto (sem o evento Registered) para evitar e-mail em dobro
-        // caso o listener padrão também esteja registrado.
-        $user->sendEmailVerificationNotification();
+        if (config('photoparty.require_email_verification')) {
+            // Envio direto (sem o evento Registered) para evitar e-mail em dobro
+            // caso o listener padrão também esteja registrado.
+            $user->sendEmailVerificationNotification();
+        }
 
         Auth::login($user);
         $request->session()->regenerate();
 
         AuditLog::record('auth.registered', $user->account, user: $user);
 
-        return redirect()->route('verification.notice');
+        return config('photoparty.require_email_verification')
+            ? redirect()->route('verification.notice')
+            : redirect()->route('dashboard');
     }
 }

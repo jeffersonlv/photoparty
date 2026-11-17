@@ -1,5 +1,12 @@
 @php($user = auth()->user())
 <x-layouts.app :title="$event->name">
+    @if ($event->isDraft())
+        <div role="status" class="mb-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900">
+            <p class="font-semibold">{{ __('app.events.draft_notice_title') }}</p>
+            <p class="mt-1 text-sm">{{ __('app.events.draft_notice_text') }}</p>
+        </div>
+    @endif
+
     <div class="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
             <h1 class="text-2xl font-bold">
@@ -86,6 +93,9 @@
         <section class="card">
             <h2 class="text-lg font-semibold">{{ __('app.events.qr_title') }}</h2>
             <p class="mt-1 text-sm text-slate-600">{{ __('app.events.qr_text') }}</p>
+            @if ($event->isDraft())
+                <p class="mt-2 rounded bg-amber-50 px-2 py-1 text-sm font-medium text-amber-900">{{ __('app.events.draft_notice_title') }}</p>
+            @endif
             <div class="mt-4 flex gap-2">
                 <a href="{{ route('events.qr', [$event, 'png']) }}" class="inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">{{ __('app.events.qr_png') }}</a>
                 <a href="{{ route('events.qr', [$event, 'svg']) }}" class="inline-flex rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50">{{ __('app.events.qr_svg') }}</a>

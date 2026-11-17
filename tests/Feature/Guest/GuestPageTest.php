@@ -99,7 +99,12 @@ it('handles each event state', function () {
     $account = Account::factory()->active()->create();
 
     $draft = Event::factory()->for($account)->create();
-    $this->get(GuestUpload::pageUrl($draft))->assertNotFound();
+    // Rascunho com link válido: aviso amigável (não 404), sem o formulário de envio.
+    $this->get(GuestUpload::pageUrl($draft))->assertOk()
+        ->assertSee(__('upload.page.not_published'))
+        ->assertDontSee('pp-event');
+    // Token errado continua 404 mesmo em rascunho.
+    $this->get(GuestUpload::pageUrl($draft, str_repeat('x', 64)))->assertNotFound();
 
     $expired = Event::factory()->for($account)->create([
         'starts_at' => now()->subDays(40), 'ends_at' => now()->subDays(40)->addHours(2),

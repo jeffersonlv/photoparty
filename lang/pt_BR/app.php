@@ -120,6 +120,8 @@ return [
         'delete' => 'Excluir',
         'delete_confirm' => 'Excluir este rascunho? Esta ação não pode ser desfeita.',
         'publish' => 'Publicar',
+        'draft_notice_title' => 'Evento em rascunho: o QR code ainda não funciona',
+        'draft_notice_text' => 'Os convidados só conseguem enviar fotos depois que você publicar o evento. Confira os dados e clique em "Publicar".',
         'publish_confirm' => 'Publicar o evento? Em evento de teste, o período de 3 horas começa agora.',
         'close' => 'Encerrar agora',
         'close_confirm' => 'Encerrar o evento agora? Os convidados não poderão mais enviar fotos.',

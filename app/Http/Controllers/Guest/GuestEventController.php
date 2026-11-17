@@ -30,7 +30,7 @@ class GuestEventController extends Controller
         $event = $this->resolveGuestEvent($request, $slug);
         $status = $event->computeStatus();
 
-        abort_if(in_array($status, [EventStatus::Draft, EventStatus::Expired], true), 404);
+        abort_if($status === EventStatus::Expired, 404);
 
         if (in_array($event->language, config('photoparty.locales'), true)) {
             App::setLocale($event->language);
@@ -38,6 +38,14 @@ class GuestEventController extends Controller
 
         // Identificação anônima do aparelho (cookie de 1 ano).
         $this->device->resolveId($request);
+
+        // Link válido, mas o organizador ainda não publicou: aviso em vez de 404.
+        if ($status === EventStatus::Draft) {
+            return response()->view('guest.status', [
+                'title' => $event->name,
+                'message' => __('upload.page.not_published'),
+            ])->header('Cache-Control', 'no-store, private');
+        }
 
         if ($status === EventStatus::Scheduled) {
             return response()->view('guest.status', [

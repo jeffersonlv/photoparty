@@ -5,6 +5,7 @@ return [
     'page' => [
         'starts_at' => 'Este evento começa em :date. Volte nesse horário para enviar sua foto.',
         'ended' => 'Este evento já terminou.',
+        'not_published' => 'Este evento ainda não foi publicado. Assim que o organizador publicar, você poderá enviar sua foto por este mesmo link.',
         'date_format' => 'd/m/Y \à\s H:i',
         'frame_date_format' => 'd/m/Y',
     ],

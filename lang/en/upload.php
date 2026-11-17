@@ -5,6 +5,7 @@ return [
     'page' => [
         'starts_at' => 'This event starts on :date. Come back then to send your photo.',
         'ended' => 'This event has ended.',
+        'not_published' => 'This event has not been published yet. As soon as the organizer publishes it, you can send your photo using this same link.',
         'date_format' => 'M j, Y \a\t g:i A',
         'frame_date_format' => 'M j, Y',
     ],

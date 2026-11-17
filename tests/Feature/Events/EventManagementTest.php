@@ -221,3 +221,19 @@ it('registers the schedule for the queue worker and status updates', function ()
         ->and($output)->toContain('queue:work')
         ->and($output)->toContain('--stop-when-empty --max-time=50');
 });
+
+it('warns the organizer that a draft event QR code does not work yet', function () {
+    $account = \App\Models\Account::factory()->active()->create();
+    $owner = \App\Models\User::factory()->for($account)->create();
+    $event = \App\Models\Event::factory()->for($account)->create();
+
+    $this->actingAs($owner)->get(route('events.show', $event))
+        ->assertOk()->assertSee(__('app.events.draft_notice_title'));
+
+    $event->published_at = now();
+    $event->refreshStatus();
+    $event->save();
+
+    $this->actingAs($owner)->get(route('events.show', $event))
+        ->assertOk()->assertDontSee(__('app.events.draft_notice_title'));
+});

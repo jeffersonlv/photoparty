@@ -120,6 +120,8 @@ return [
         'delete' => 'Delete',
         'delete_confirm' => 'Delete this draft? This cannot be undone.',
         'publish' => 'Publish',
+        'draft_notice_title' => 'Draft event: the QR code does not work yet',
+        'draft_notice_text' => 'Guests can only send photos after you publish the event. Check the details and click "Publish".',
         'publish_confirm' => 'Publish the event? For a trial event, the 3-hour period starts now.',
         'close' => 'End now',
         'close_confirm' => 'End the event now? Guests will no longer be able to send photos.',

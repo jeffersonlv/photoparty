@@ -147,3 +147,19 @@ it('keeps showing an ended event with a discreet notice and without the QR', fun
     // Evento ao vivo: o aviso existe mas fica escondido.
     expect($this->get(screenUrl($this->event))->getContent())->toMatch('/id="sc-ended"[^>]*\shidden/');
 });
+
+it('rotates motivational phrases in the event language while there are no photos', function () {
+    $pt = (array) trans('screen.phrases', [], 'pt_BR');
+    $en = (array) trans('screen.phrases', [], 'en');
+
+    expect($pt)->toHaveCount(15)->and($en)->toHaveCount(15);
+
+    $this->event->language = 'pt_BR';
+    $this->event->save();
+    $this->get(screenUrl($this->event))->assertOk()
+        ->assertSee($pt[0])->assertSee($pt[14])->assertSee('id="sc-phrases"', false);
+
+    $this->event->language = 'en';
+    $this->event->save();
+    $this->get(screenUrl($this->event))->assertOk()->assertSee($en[0])->assertDontSee($pt[0]);
+});

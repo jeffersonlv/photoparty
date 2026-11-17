@@ -60,6 +60,9 @@
 .sc-empty[hidden] { display: none; }
 .sc-empty__name { margin: 0; font-size: clamp(2rem, 6vw, 5rem); font-weight: 700; }
 .sc-empty__text { margin: 0; font-size: clamp(1rem, 2vw, 1.75rem); color: #a9abc8; }
+.sc-phrase { max-width: 22ch; font-size: clamp(1.5rem, 4vw, 3.25rem); line-height: 1.2; color: #f4f1ff; text-align: center; transition: opacity 600ms ease; }
+.sc-phrase.is-fading { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .sc-phrase { transition: none; } }
 
 /* QR no canto (opcional). Fundo branco para leitura em qualquer foto. */
 .sc-qr {

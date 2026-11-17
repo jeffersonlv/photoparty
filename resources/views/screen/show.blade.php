@@ -29,7 +29,14 @@
 
         <div id="sc-empty" class="sc-empty">
             <p class="sc-empty__name">{{ $event->name }}</p>
-            <p class="sc-empty__text">{{ __('screen.waiting') }}</p>
+            {{-- A 1ª frase aparece já no HTML; o JS gira as demais (lista abaixo, sem script inline). --}}
+            @php($phrases = (array) __('screen.phrases'))
+            <p id="sc-phrase" class="sc-empty__text sc-phrase" aria-live="polite">{{ $phrases[0] ?? __('screen.waiting') }}</p>
+            <ul id="sc-phrases" hidden>
+                @foreach ($phrases as $phrase)
+                    <li>{{ $phrase }}</li>
+                @endforeach
+            </ul>
         </div>
 
         @if ($qrImage)

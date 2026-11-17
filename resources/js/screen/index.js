@@ -8,6 +8,7 @@ import { ScreenSync, StoppedError } from './sync.js';
 
 const URL_SAFETY_MS = 5000;
 const IDLE_MS = 3000;
+const PHRASE_MS = 6000;
 
 function boot() {
   const block = document.getElementById('pp-screen');
@@ -29,6 +30,7 @@ function boot() {
   let shownAny = false;
   let active = 1; // índice da camada visível (a outra recebe a próxima foto)
   let forceResync = false;
+  let currentUuid = null; // foto na tela agora
 
   const canUse = (item) => cache.has(item.uuid) || item.expiresAt - URL_SAFETY_MS > Date.now();
 
@@ -52,6 +54,43 @@ function boot() {
 
   function setEmpty(show) {
     emptyEl.hidden = !show;
+    if (show) startPhrases();
+    else stopPhrases();
+  }
+
+  // Sem fotos: tira a última imagem da tela e volta ao estado inicial.
+  function clearStage() {
+    layers.forEach((layer) => {
+      layer.classList.remove('is-active');
+      layer.removeAttribute('src');
+    });
+    currentUuid = null;
+    shownAny = false;
+  }
+
+  // ------------------------------------------------- frases enquanto não há fotos
+
+  const phraseEl = document.getElementById('sc-phrase');
+  const phrases = [...document.querySelectorAll('#sc-phrases li')].map((li) => li.textContent.trim()).filter(Boolean);
+  let phraseIdx = 0;
+  let phraseTimer = null;
+
+  function startPhrases() {
+    if (phraseTimer || !phraseEl || phrases.length < 2) return;
+
+    phraseTimer = setInterval(() => {
+      phraseEl.classList.add('is-fading');
+      setTimeout(() => {
+        phraseIdx = (phraseIdx + 1) % phrases.length;
+        phraseEl.textContent = phrases[phraseIdx];
+        phraseEl.classList.remove('is-fading');
+      }, 600);
+    }, PHRASE_MS);
+  }
+
+  function stopPhrases() {
+    clearInterval(phraseTimer);
+    phraseTimer = null;
   }
 
   function applyStatus(status) {
@@ -124,6 +163,7 @@ function boot() {
     prev.classList.remove('is-active');
     active = 1 - active;
     shownAny = true;
+    currentUuid = item.uuid;
     shownAt = Date.now();
   }
 
@@ -132,6 +172,8 @@ function boot() {
       const item = queue.next(canUse);
 
       if (!item) {
+        // Fila vazia (ex.: todas as fotos foram rejeitadas): limpa a tela e mostra as frases.
+        if (queue.size() === 0 && shownAny) clearStage();
         setEmpty(!shownAny);
         await sleep(1000);
         continue;
@@ -170,6 +212,9 @@ function boot() {
         forceResync = false;
         await sync.resync();
       }
+
+      // A foto que está na tela foi rejeitada/removida: troca na hora.
+      if (currentUuid && !queue.has(currentUuid)) cancelDwell();
 
       if (queue.freshCount() > 0) cutShort();
     } catch (error) {

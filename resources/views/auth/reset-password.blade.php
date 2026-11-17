@@ -1,5 +1,5 @@
 <x-layouts.guest :title="__('app.auth.reset_title')">
-    <h1 class="mb-6 text-xl font-semibold">{{ __('app.auth.reset_title') }}</h1>
+    <h1 class="page-title mb-6">{{ __('app.auth.reset_title') }}</h1>
 
     <form method="POST" action="{{ route('password.store') }}" class="space-y-4">
         @csrf
@@ -14,7 +14,7 @@
         <div>
             <x-label for="password">{{ ucfirst(__('app.fields.password')) }}</x-label>
             <x-password-input name="password" autocomplete="new-password" />
-            <p class="mt-1 text-xs text-slate-500">{{ __('app.auth.password_hint') }}</p>
+            <p class="mt-1 text-xs text-muted">{{ __('app.auth.password_hint') }}</p>
             <x-input-error name="password" />
         </div>
 
@@ -23,6 +23,6 @@
             <x-password-input name="password_confirmation" autocomplete="new-password" />
         </div>
 
-        <x-button class="w-full">{{ __('app.auth.reset_button') }}</x-button>
+        <x-button class="btn-block mt-2">{{ __('app.auth.reset_button') }}</x-button>
     </form>
 </x-layouts.guest>

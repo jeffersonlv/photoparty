@@ -143,6 +143,24 @@ Regra de plano (decisão do dono do produto; substitui a do SPEC), centralizada 
 - Galeria: `GET /events/{event}/gallery` (aprovadas, paginada, `routes/photos.php`). Download: `/events/{event}/photos/{photo}/download` (`evento-slug-0001.jpg`). Conta não-active vê o aviso de prévia e recebe 404 nos downloads.
 - ZIP: o botão cria um registro em `exports` e despacha `BuildEventExport` (fila `database`, cron). Um ZIP em andamento por evento; arquivo em `tenants/{account}/events/{event}/exports/{uuid}.zip` (CM_STORE). A tela mostra o status e um link "Atualizar" (sem JS). O ZIP expira em 7 dias; `exports:purge-expired` (agendado de hora em hora) apaga o arquivo.
 
+## Molduras personalizadas
+
+Módulo 8. Rotas em `routes/frames.php`; código em `App\Http\Controllers\Frames\FrameLibraryController`, `App\Http\Controllers\Guest\GuestFrameController`, `App\Services\Frames\*` e `App\Policies\FramePolicy`; telas em `resources/views/frames/`; textos em `lang/*/frames.php`.
+
+- **Regra de plano:** `Account::canUseCustomFrames()` = status `active` **e** plano com `allows_custom_frames`. Sem isso a tela **Molduras** (`/frame-library`, link no menu e na página do evento) mostra os 4 modelos prontos e o aviso "Molduras personalizadas com a sua marca estão disponíveis nos planos pagos.", sem formulário; `POST` direto → 403 com a mesma mensagem. Moldura de outra conta → 404. Moderador só visualiza.
+- **Prefixo `/frame-library`** (e não `/frames`): `public/frames/` é a pasta dos modelos prontos e, no Apache/servidor embutido, um diretório real com o mesmo nome encobriria a rota.
+- **Envio:** nome + retrato 1080×1350 e/ou paisagem 1920×1080 (pelo menos um), PNG até 2 MB cada. `CustomFrameImage` valida `finfo` = `image/png`, `getimagesize` com dimensões exatas, canal alfa no IHDR (tipo 4/6 ou paleta com `tRNS`); redesenha com GD numa imagem truecolor nova com alfa preservado e grava com `imagepng` (some com `tEXt`/`iTXt`/`eXIf` e bytes depois do `IEND`). A janela é a bounding box dos pixels com alfa ≥ 100/127, amostrada a cada 2 px (~0,1 s na paisagem); sem transparência ou janela < 30% da imagem → recusa. Limite de 20 por conta (contagem com `lockForUpdate` na conta). Throttle 20/min.
+- **Armazenamento:** `storage/app/private/tenants/{account_uuid}/frames/{frame_uuid}/{portrait|landscape}.png` + `config.json` (também em `frames.config`), no formato de `docs/frame-config.md`: `background: null`, `overlay: "<orientação>.png"`, `window` = bbox, `texts: []`, `effect: null`, só as orientações enviadas. Nada em `public/`.
+- **Convidado (decisão):** em vez de URL assinada, as molduras custom saem por `GET /e/{slug}/frames/{frame}/{config.json|portrait.png|landscape.png}?t={token de upload}` (`guest.frames.asset`), com a **mesma autorização do envio de fotos**: evento por slug + hash do token, evento `live`, e a moldura precisa estar em `Event::activeFrames()` daquele evento. É o mais simples (sem expiração para renovar durante a festa) e não abre nada além do que o QR já dá. O payload da página do convidado traz `configUrl` com o `?t=` e `orientations`; `resolveAssetUrl()` (JS) repassa a query do config para o PNG.
+- **`Event::activeFrames()`** agora exclui moldura custom de outra conta e de conta que não pode usá-las (plano rebaixado → some da página e o upload com esse `frame_key` dá erro de validação).
+- **Uma orientação só:** o payload informa `orientations`; no JS, `frameOptions` mostra só as molduras da orientação da foto e, ao virar a orientação, uma moldura que não existe nela é retirada (foto fica sem moldura).
+- **Ativação por evento (decisão):** na própria tela de molduras, cada moldura custom tem a lista de eventos não encerrados da conta com caixas de seleção (`PUT /frame-library/{frame}/events`). Eventos de outra conta enviados no formulário são ignorados. A moldura custom entra depois dos modelos prontos (`sort_order` 100).
+- **Prévia:** SVG com a "foto de exemplo" (gradiente) na `window` e o PNG por cima (`GET /frame-library/{frame}/{orientação}.png`, login + policy). Compatível com a CSP (sem estilo inline).
+- **Gabarito:** `GET /frame-library/guide/{portrait|landscape}.png`, gerado com GD (`FrameGuide`): moldura cinza semitransparente, janela sugerida transparente com contorno vermelho e margem de segurança tracejada. O gabarito enviado sem alterações passa na validação.
+- **Exclusão:** apaga a pasta da moldura e os vínculos com eventos; fotos já enviadas ficam com `frame_id` nulo.
+- **Auditoria:** `frame.uploaded`, `frame.events_updated`, `frame.deleted`.
+- **Admin:** a tela de molduras do admin continua só com os modelos do sistema (há teste garantindo que ela não mexe em moldura de organizador). Desativar uma moldura custom de qualquer conta pelo admin fica pendente; hoje dá para fazer `frames.is_active = false` direto no banco (o convidado deixa de vê-la e a tela do organizador mostra "Desativada pela administração").
+
 ## Roteiro de teste manual do ciclo completo
 
 Pré-requisitos: `composer install`, `.env` com `APP_KEY`, `php artisan migrate --seed`, `npm install && npm run build` (ou `npm run dev`). Rode `php artisan serve --host=0.0.0.0` e use o IP da máquina na rede local (por exemplo `http://192.168.0.10:8000`), tanto no computador quanto no celular. Defina `PHOTOPARTY_PUBLIC_URL` com esse mesmo endereço para o QR e o link do convidado apontarem para a sua máquina, e rode `php artisan queue:work` e `php artisan schedule:work` em outros terminais se quiser os comandos agendados.
@@ -186,6 +204,6 @@ Observação (celular em rede local sem HTTPS): o navegador bloqueia a câmera a
 - Antes era: `composer.json` com `chillerlan/php-qrcode`, Pest e `ext-gd`; `package.json` com `@alpinejs/csp`.
 - Galeria completa e exportação ZIP (módulo 7) ainda não implementadas; o telão e a moderação ao vivo (módulos 5-6) estão prontos.
 - **PHP do servidor:** o upload aceita foto de até 3 MB; confira `upload_max_filesize` ≥ 4M e `post_max_size` ≥ 8M no PHP 8.3 do subdomínio.
-- Página do convidado envia só os modelos prontos; molduras do organizador (custom) entram no módulo 8 (precisam de uma `configUrl` servida pelo servidor). Textos do organizador nas molduras usam nome/data do evento e os `default` do config até o módulo 8 permitir editar.
+- Textos do organizador nas molduras usam nome/data do evento e os `default` do config (edição por moldura ainda não implementada).
 - Limpeza de arquivos órfãos (cron) e apagar arquivos ao excluir evento: módulo 11.
-- Molduras no formulário do evento: módulo 8 (a tabela `event_frame` já existe).
+- Molduras personalizadas são ativadas por evento na tela Molduras (não no formulário do evento). Admin ainda não desativa moldura custom pela interface.

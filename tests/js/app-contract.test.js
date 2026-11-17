@@ -78,7 +78,7 @@ describe('normalizeEventConfig', () => {
     expect(c.moderation).toBe(true);
     expect(c.language).toBe('pt_BR');
     expect(c.askGuestName).toBe(false);
-    expect(c.frames).toEqual([{ key: 'a', name: 'A', configUrl: '/a.json', texts: {} }]);
+    expect(c.frames).toEqual([{ key: 'a', name: 'A', configUrl: '/a.json', orientations: ['portrait', 'landscape'], texts: {} }]);
     expect(normalizeEventConfig(undefined).frames).toEqual([]);
   });
 });

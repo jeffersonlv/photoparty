@@ -4,17 +4,17 @@
 @endphp
 
 @if ($isTrial)
-    <p class="mb-6 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">{{ __('app.events.trial_notice') }}</p>
+    <p class="alert alert-warn mb-6" role="note">{{ __('app.events.trial_notice') }}</p>
 @endif
 
-<div class="space-y-5">
+<div class="space-y-6">
     <div>
         <x-label for="name">{{ ucfirst(__('app.fields.event_name')) }}</x-label>
         <input id="name" name="name" type="text" value="{{ old('name', $event->name) }}" required maxlength="120" class="input">
         <x-input-error name="name" />
     </div>
 
-    <div class="grid gap-5 sm:grid-cols-2">
+    <div class="grid gap-6 sm:grid-cols-2">
         <div>
             <x-label for="starts_at">{{ ucfirst(__('app.fields.starts_at')) }}</x-label>
             <input id="starts_at" name="starts_at" type="datetime-local" required class="input"
@@ -27,17 +27,19 @@
                    value="{{ old('ends_at', $event->ends_at?->format('Y-m-d\TH:i')) }}">
             <x-input-error name="ends_at" />
         </div>
-        <p class="text-xs text-slate-500 sm:col-span-2">{{ __('app.events.timezone_hint', ['tz' => config('app.timezone')]) }}</p>
+        <p class="text-xs text-muted sm:col-span-2">{{ __('app.events.timezone_hint', ['tz' => config('app.timezone')]) }}</p>
     </div>
 
     <fieldset>
-        <legend class="block text-sm font-medium text-slate-700">{{ ucfirst(__('app.fields.moderation')) }}</legend>
-        @foreach (['pre', 'post'] as $mode)
-            <label class="mt-2 flex items-center gap-2 text-sm">
-                <input type="radio" name="moderation" value="{{ $mode }}" @checked(old('moderation', $event->moderation ?? 'pre') === $mode)>
-                {{ __('app.moderation.'.$mode) }}
-            </label>
-        @endforeach
+        <legend class="field-label">{{ ucfirst(__('app.fields.moderation')) }}</legend>
+        <div class="mt-2 grid gap-2">
+            @foreach (['pre', 'post'] as $mode)
+                <label class="choice">
+                    <input type="radio" name="moderation" value="{{ $mode }}" class="h-5 w-5 shrink-0 border-slate-400 text-brand-600 focus:ring-brand-600" @checked(old('moderation', $event->moderation ?? 'pre') === $mode)>
+                    {{ __('app.moderation.'.$mode) }}
+                </label>
+            @endforeach
+        </div>
         <x-input-error name="moderation" />
     </fieldset>
 
@@ -47,8 +49,8 @@
         <x-input-error name="welcome_message" />
     </div>
 
-    <div class="grid gap-5 sm:grid-cols-2">
-        <label class="flex items-center gap-2 text-sm">
+    <div class="grid gap-6 sm:grid-cols-2 sm:items-start">
+        <label class="choice sm:mt-7">
             <input type="hidden" name="ask_guest_name" value="0">
             <input type="checkbox" name="ask_guest_name" value="1" class="checkbox" @checked(old('ask_guest_name', $event->ask_guest_name))>
             {{ __('app.fields.ask_guest_name') }}
@@ -63,10 +65,10 @@
     </div>
 
     <fieldset>
-        <legend class="block text-sm font-medium text-slate-700">{{ ucfirst(__('app.fields.enabled_filters')) }}</legend>
-        <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <legend class="field-label">{{ ucfirst(__('app.fields.enabled_filters')) }}</legend>
+        <div class="mt-2 grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:grid-cols-3">
             @foreach (config('photoparty.filters') as $filter)
-                <label class="flex items-center gap-2 text-sm">
+                <label class="choice">
                     <input type="checkbox" name="enabled_filters[]" value="{{ $filter }}" class="checkbox" @checked(in_array($filter, (array) $filters, true))>
                     {{ __('app.filters.'.$filter) }}
                 </label>

@@ -6,10 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#181330">
     <title>{{ isset($title) ? $title.' · ' : '' }}{{ __('app.name') }}</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/fonts.css', 'resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+<body class="min-h-screen overflow-x-hidden bg-canvas text-ink antialiased">
     {{ $slot }}
 </body>
 </html>

@@ -1,7 +1,12 @@
 <x-admin.layout :title="__('admin.audit.title')">
     <h1>{{ __('admin.audit.title') }}</h1>
 
-    <form method="GET" class="adm-filters">
+    @php($activeFilters = count(array_filter($filters ?? [], fn ($v) => $v !== null && $v !== '')))
+    <div class="adm-filterbox" x-data="disclosure">
+        <button type="button" class="adm-btn adm-filterbox__toggle" aria-controls="adm-filters" aria-expanded="false" x-on:click="toggle" x-bind:aria-expanded="expanded">
+            {{ __('app.nav.filters') }}@if ($activeFilters > 0) <span class="adm-badge adm-badge--trial">{{ $activeFilters }}</span>@endif
+        </button>
+    <form id="adm-filters" method="GET" class="adm-filters" x-bind:data-open="expanded">
         <input type="text" name="action" list="audit-actions" value="{{ $filters['action'] ?? '' }}" placeholder="{{ __('admin.audit.filter_action') }}" maxlength="80">
         <datalist id="audit-actions">
             @foreach ($actions as $action)
@@ -15,9 +20,10 @@
         <button type="submit" class="adm-btn">{{ __('admin.common.filter') }}</button>
         <a href="{{ route('admin.audit.index') }}" class="adm-btn adm-btn--ghost">{{ __('admin.common.clear') }}</a>
     </form>
+    </div>
 
     <div class="adm-table-wrap">
-        <table class="adm-table">
+        <table class="adm-table adm-table--stack">
             <thead>
                 <tr>
                     <th>{{ __('admin.audit.when') }}</th>
@@ -32,13 +38,13 @@
             <tbody>
                 @forelse ($logs as $log)
                     <tr>
-                        <td class="adm-nowrap">{{ $log->created_at?->format('d/m/Y H:i:s') }}</td>
-                        <td>{{ $log->user?->email ?? __('admin.audit.system') }}</td>
-                        <td>{{ $log->account?->name ?? '—' }}</td>
-                        <td><code>{{ $log->action }}</code></td>
-                        <td>{{ $log->subject_type ? class_basename($log->subject_type).' #'.$log->subject_id : '—' }}</td>
-                        <td><code class="adm-meta">{{ $log->meta ? json_encode($log->meta, JSON_UNESCAPED_UNICODE) : '' }}</code></td>
-                        <td>{{ $log->ip ?? '—' }}</td>
+                        <td class="adm-nowrap" data-label="{{ __('admin.audit.when') }}">{{ $log->created_at?->format('d/m/Y H:i:s') }}</td>
+                        <td data-label="{{ __('admin.audit.user') }}">{{ $log->user?->email ?? __('admin.audit.system') }}</td>
+                        <td data-label="{{ __('admin.audit.account') }}">{{ $log->account?->name ?? '—' }}</td>
+                        <td data-label="{{ __('admin.audit.action') }}"><code>{{ $log->action }}</code></td>
+                        <td data-label="{{ __('admin.audit.subject') }}">{{ $log->subject_type ? class_basename($log->subject_type).' #'.$log->subject_id : '—' }}</td>
+                        <td data-label="{{ __('admin.audit.meta') }}"><code class="adm-meta">{{ $log->meta ? json_encode($log->meta, JSON_UNESCAPED_UNICODE) : '' }}</code></td>
+                        <td data-label="{{ __('admin.audit.ip') }}">{{ $log->ip ?? '—' }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="7" class="adm-empty">{{ __('admin.common.empty') }}</td></tr>

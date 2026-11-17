@@ -5,7 +5,7 @@
     </div>
 
     <div class="adm-table-wrap">
-        <table class="adm-table">
+        <table class="adm-table adm-table--stack">
             <thead>
                 <tr>
                     <th>{{ __('admin.plans.sort_order') }}</th>
@@ -22,14 +22,14 @@
             <tbody>
                 @forelse ($plans as $plan)
                     <tr>
-                        <td>{{ $plan->sort_order }}</td>
-                        <td>{{ $plan->name }} <small class="adm-muted">{{ $plan->slug }}</small></td>
-                        <td>{{ $plan->currency }} {{ number_format((float) $plan->price, 2, ',', '.') }}</td>
-                        <td>{{ $plan->max_events_per_month ?? __('admin.plans.unlimited') }}</td>
-                        <td>{{ $plan->max_photos_per_event }}</td>
-                        <td>{{ $plan->retention_days }}</td>
-                        <td>{{ $plan->is_public ? __('admin.common.yes') : __('admin.common.no') }}</td>
-                        <td>{{ $plan->accounts_count }}</td>
+                        <td data-label="{{ __('admin.plans.sort_order') }}">{{ $plan->sort_order }}</td>
+                        <td data-label="{{ __('admin.plans.name') }}">{{ $plan->name }} <small class="adm-muted">{{ $plan->slug }}</small></td>
+                        <td data-label="{{ __('admin.plans.price') }}">{{ $plan->currency }} {{ number_format((float) $plan->price, 2, ',', '.') }}</td>
+                        <td data-label="{{ __('admin.plans.max_events') }}">{{ $plan->max_events_per_month ?? __('admin.plans.unlimited') }}</td>
+                        <td data-label="{{ __('admin.plans.max_photos') }}">{{ $plan->max_photos_per_event }}</td>
+                        <td data-label="{{ __('admin.plans.retention') }}">{{ $plan->retention_days }}</td>
+                        <td data-label="{{ __('admin.plans.is_public') }}">{{ $plan->is_public ? __('admin.common.yes') : __('admin.common.no') }}</td>
+                        <td data-label="{{ __('admin.plans.accounts') }}">{{ $plan->accounts_count }}</td>
                         <td class="adm-right adm-actions">
                             <a class="adm-btn adm-btn--sm" href="{{ route('admin.plans.edit', $plan) }}">{{ __('admin.common.edit') }}</a>
                             <x-admin.delete :action="route('admin.plans.destroy', $plan)" />

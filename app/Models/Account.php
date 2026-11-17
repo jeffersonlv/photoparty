@@ -73,6 +73,15 @@ class Account extends Model
     }
 
     /**
+     * Regra única de molduras personalizadas (módulo 8): só conta active com plano que
+     * permite molduras próprias. Teste, teste encerrado, past_due e cancelled: só os modelos prontos.
+     */
+    public function canUseCustomFrames(): bool
+    {
+        return $this->isActive() && (bool) $this->plan?->allows_custom_frames;
+    }
+
+    /**
      * Teste ainda não usado: conta em trial cujo evento de teste não foi publicado.
      */
     public function hasTrialAvailable(): bool

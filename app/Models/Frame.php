@@ -8,12 +8,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
- * Moldura. account_id nulo = modelo do sistema, visível para todas as contas.
- * (Módulo 8 implementa a biblioteca e o upload.)
+ * Moldura. account_id nulo = modelo do sistema (type template), visível para todas as contas.
+ * type custom = moldura enviada pelo organizador (módulo 8): arquivos em
+ * storage/app/private/tenants/{account_uuid}/frames/{frame_uuid}/, nunca em public/.
  */
 class Frame extends Model
 {
     use BelongsToAccount, HasPublicUuid;
+
+    public const TYPE_TEMPLATE = 'template';
+
+    public const TYPE_CUSTOM = 'custom';
+
+    public const ORIENTATIONS = ['portrait', 'landscape'];
+
+    /** Máximo de molduras personalizadas por conta. */
+    public const MAX_CUSTOM_PER_ACCOUNT = 20;
 
     protected static bool $includeSystemRecords = true;
 
@@ -68,5 +78,51 @@ class Frame extends Model
     public function isSystem(): bool
     {
         return $this->account_id === null;
+    }
+
+    public function isCustom(): bool
+    {
+        return $this->type === self::TYPE_CUSTOM;
+    }
+
+    /**
+     * Orientações que a moldura oferece (a custom pode ter só uma).
+     *
+     * @return list<string>
+     */
+    public function orientations(): array
+    {
+        return array_values(array_filter(
+            self::ORIENTATIONS,
+            fn (string $o) => isset($this->config['orientations'][$o]),
+        ));
+    }
+
+    /**
+     * Pasta da moldura custom no disco local (dentro da pasta do tenant).
+     */
+    public function storageDirectory(): ?string
+    {
+        if (! $this->isCustom() || $this->account_id === null) {
+            return null;
+        }
+
+        $account = Account::query()->find($this->account_id);
+
+        return $account ? $account->storagePath().'/frames/'.$this->uuid : null;
+    }
+
+    /**
+     * Caminho do PNG de uma orientação (custom), ou null se a moldura não a tiver.
+     */
+    public function imagePath(string $orientation): ?string
+    {
+        if (! in_array($orientation, self::ORIENTATIONS, true)) {
+            return null;
+        }
+
+        $path = $orientation === 'portrait' ? $this->portrait_path : $this->landscape_path;
+
+        return $this->isCustom() && is_string($path) && $path !== '' ? $path : null;
     }
 }

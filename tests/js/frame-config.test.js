@@ -132,6 +132,7 @@ describe('textos', () => {
 
   it('resolveAssetUrl junta a pasta do config com o caminho relativo', () => {
     expect(resolveAssetUrl('/frames/led/config.json', 'portrait-bg.png')).toBe('/frames/led/portrait-bg.png');
-    expect(resolveAssetUrl('/frames/led/config.json?v=3', 'a.png')).toBe('/frames/led/a.png');
+    // a query do config (ex.: ?t= do token do evento) e repassada a imagem
+    expect(resolveAssetUrl('/frames/led/config.json?v=3', 'a.png')).toBe('/frames/led/a.png?v=3');
   });
 });

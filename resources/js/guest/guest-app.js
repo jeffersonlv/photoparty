@@ -36,10 +36,19 @@ export function normalizeEventConfig(raw = {}) {
         key: f.key,
         name: String(f.name ?? f.key),
         configUrl: f.configUrl,
+        // orientacoes que a moldura oferece (custom pode ter so uma); padrao: as duas
+        orientations: Array.isArray(f.orientations) && f.orientations.some((o) => ORIENTATIONS[o])
+          ? f.orientations.filter((o) => ORIENTATIONS[o])
+          : Object.keys(ORIENTATIONS),
         // valores dos textos do organizador: { event_name: "Casamento ..." }
         texts: f.texts && typeof f.texts === 'object' ? f.texts : {},
       })),
   };
+}
+
+/** Molduras disponiveis para uma orientacao (retrato/paisagem). */
+export function framesForOrientation(frames, orientation) {
+  return (frames ?? []).filter((f) => (f.orientations ?? Object.keys(ORIENTATIONS)).includes(orientation));
 }
 
 const readCsrf = (cfg) => cfg.csrfToken
@@ -70,7 +79,8 @@ export function guestApp(rawConfig, deps = {}) {
 
   return {
     cfg,
-    frameOptions: cfg.frames,
+    // so as molduras que existem na orientacao atual da foto
+    get frameOptions() { return framesForOrientation(cfg.frames, this.orientation); },
     filterOptions: FILTER_KEYS.map((key) => ({ key, label: t(`filter_${key}`) })),
 
     step: 'welcome',
@@ -315,6 +325,18 @@ export function guestApp(rawConfig, deps = {}) {
         } else {
           const desc = cfg.frames.find((f) => f.key === key);
           if (!desc) throw new Error('frame-unknown');
+          // moldura que nao existe nesta orientacao: foto fica sem moldura
+          if (!desc.orientations.includes(this.orientation)) {
+            if (seq !== applySeq) return;
+            this.frameKey = '';
+            orientCfg = plainOrientation(this.orientation);
+            assets = {};
+            this.guestFields = guestTextFields(orientCfg, lang);
+            this.view = clampView(this.view, this.geometry());
+            this.frameLoading = false;
+            this.render();
+            return;
+          }
           let frame = frameCache.get(key);
           if (!frame) {
             frame = await loadFrameConfig(desc.configUrl);

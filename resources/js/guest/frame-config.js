@@ -162,9 +162,14 @@ export function guestTextFields(orientationCfg, lang) {
     }));
 }
 
-/** Junta a pasta do config com um caminho relativo. */
+/**
+ * Junta a pasta do config com um caminho relativo. A query string do config (ex.: ?t= do
+ * token do evento nas molduras personalizadas) e repassada a imagem, que e autorizada
+ * pela mesma rota do servidor.
+ */
 export function resolveAssetUrl(configUrl, relPath) {
-  const base = String(configUrl).split('?')[0];
+  const [base, ...rest] = String(configUrl).split('?');
   const dir = base.slice(0, base.lastIndexOf('/') + 1);
-  return dir + relPath;
+  const query = rest.join('?');
+  return dir + relPath + (query ? `?${query}` : '');
 }

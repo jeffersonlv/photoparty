@@ -11,7 +11,7 @@
     <p class="adm-muted">{{ __('admin.home.intro') }}</p>
 
     <div class="adm-table-wrap">
-        <table class="adm-table">
+        <table class="adm-table adm-table--stack">
             <thead>
                 <tr>
                     <th>#</th>
@@ -24,11 +24,11 @@
             <tbody>
                 @foreach ($sections as $section)
                     <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td><a href="{{ route('admin.home.sections.edit', $section) }}">{{ __('admin.home.sections.'.$section->key) }}</a></td>
-                        <td><span @class(['adm-badge', 'adm-badge--active' => $section->enabled, 'adm-badge--cancelled' => ! $section->enabled])>{{ $section->enabled ? __('admin.common.on') : __('admin.common.off') }}</span></td>
-                        <td>{{ $section->updated_at?->format('d/m/Y H:i') ?? __('admin.home.never') }}@if ($section->updater) &middot; {{ $section->updater->name }}@endif</td>
-                        <td class="adm-actions">
+                        <td data-label="#">{{ $loop->iteration }}</td>
+                        <td data-label="{{ __('admin.home.section') }}"><a href="{{ route('admin.home.sections.edit', $section) }}">{{ __('admin.home.sections.'.$section->key) }}</a></td>
+                        <td data-label="{{ __('admin.home.status') }}"><span @class(['adm-badge', 'adm-badge--active' => $section->enabled, 'adm-badge--cancelled' => ! $section->enabled])>{{ $section->enabled ? __('admin.common.on') : __('admin.common.off') }}</span></td>
+                        <td data-label="{{ __('admin.home.updated') }}">{{ $section->updated_at?->format('d/m/Y H:i') ?? __('admin.home.never') }}@if ($section->updater) &middot; {{ $section->updater->name }}@endif</td>
+                        <td class="adm-actions" data-label="{{ __('admin.common.actions') }}">
                             <form method="POST" action="{{ route('admin.home.sections.toggle', $section) }}">
                                 @csrf
                                 <button type="submit" class="adm-btn adm-btn--sm">{{ $section->enabled ? __('admin.common.disable') : __('admin.common.enable') }}</button>

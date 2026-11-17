@@ -3,7 +3,7 @@
     <p class="adm-muted">{{ __('admin.frames.intro') }}</p>
 
     <div class="adm-table-wrap">
-        <table class="adm-table">
+        <table class="adm-table adm-table--stack">
             <thead>
                 <tr>
                     <th>#</th>
@@ -16,11 +16,11 @@
             <tbody>
                 @forelse ($frames as $frame)
                     <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td>{{ $frame->name }}</td>
-                        <td>{{ $frame->template_key ?? '—' }}</td>
-                        <td><span @class(['adm-badge', 'adm-badge--active' => $frame->is_active, 'adm-badge--cancelled' => ! $frame->is_active])>{{ $frame->is_active ? __('admin.common.on') : __('admin.common.off') }}</span></td>
-                        <td class="adm-actions">
+                        <td data-label="#">{{ $loop->iteration }}</td>
+                        <td data-label="{{ __('admin.frames.name') }}">{{ $frame->name }}</td>
+                        <td data-label="{{ __('admin.frames.key') }}">{{ $frame->template_key ?? '—' }}</td>
+                        <td data-label="{{ __('admin.frames.status') }}"><span @class(['adm-badge', 'adm-badge--active' => $frame->is_active, 'adm-badge--cancelled' => ! $frame->is_active])>{{ $frame->is_active ? __('admin.common.on') : __('admin.common.off') }}</span></td>
+                        <td class="adm-actions" data-label="{{ __('admin.common.actions') }}">
                             <form method="POST" action="{{ route('admin.frames.toggle', $frame) }}">
                                 @csrf
                                 <button type="submit" class="adm-btn adm-btn--sm">{{ $frame->is_active ? __('admin.common.disable') : __('admin.common.enable') }}</button>

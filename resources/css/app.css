@@ -2,21 +2,89 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    html { -webkit-text-size-adjust: 100%; }
+    body { @apply bg-canvas text-ink font-sans antialiased; }
+    [x-cloak], [hidden] { display: none !important; }
+    :focus-visible { @apply outline-none ring-2 ring-brand-600 ring-offset-2 ring-offset-white; }
+    h1, h2, h3 { text-wrap: balance; }
+}
+
 @layer components {
+    /* Tipografia */
+    .page-title { @apply font-display text-[1.9rem] leading-[1.1] tracking-wide text-ink sm:text-4xl; }
+    .section-title { @apply text-lg font-bold text-ink; }
+    .meta-label { @apply text-xs font-semibold text-muted; }
+
+    /* Campos */
     .input {
-        @apply mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500;
+        @apply mt-1 block min-h-touch w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-base text-ink shadow-sm
+               placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/30;
+    }
+    select.input { @apply pr-9; }
+    .checkbox { @apply h-5 w-5 shrink-0 rounded border-slate-400 text-brand-600 focus:ring-brand-600; }
+    .field-label { @apply block text-sm font-bold text-ink; }
+    .choice {
+        @apply flex min-h-touch cursor-pointer items-center gap-3 rounded-xl border border-line bg-white px-3.5 py-2 text-sm
+               has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50;
     }
 
-    .checkbox {
-        @apply h-4 w-4 rounded border-slate-300 text-indigo-600;
+    /* Botões: toque confortável (44 px) */
+    .btn {
+        @apply inline-flex min-h-touch items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-center text-sm font-bold leading-tight
+               transition-colors disabled:opacity-50;
     }
+    .btn-primary { @apply bg-brand-600 text-white shadow-sm hover:bg-brand-700 active:bg-brand-800; }
+    .btn-secondary { @apply border border-slate-300 bg-white text-ink hover:bg-slate-50 active:bg-slate-100; }
+    .btn-danger { @apply bg-red-600 text-white hover:bg-red-700; }
+    .btn-danger-outline { @apply border border-red-300 bg-white text-red-700 hover:bg-red-50; }
+    .btn-flash { @apply bg-flash text-ink shadow-sm hover:brightness-95; }
+    .btn-block { @apply w-full; }
 
-    .card {
-        @apply rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200;
+    /* Superfícies */
+    .card { @apply rounded-2xl bg-white p-5 shadow-card ring-1 ring-line sm:p-6; }
+    .link { @apply font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-900; }
+
+    /* Avisos */
+    .alert { @apply flex gap-3 rounded-xl px-4 py-3 text-sm; }
+    .alert-warn { @apply border border-flash bg-flash-soft text-[#5c4300]; }
+    .alert-info { @apply border border-brand-200 bg-brand-50 text-brand-900; }
+    .alert-ok { @apply border border-emerald-200 bg-emerald-50 text-emerald-900; }
+    .alert-err { @apply border border-red-200 bg-red-50 text-red-900; }
+
+    /* Selos */
+    .badge { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold; }
+
+    /* Lista de eventos: o "canhoto" de ingresso com a data */
+    .stub {
+        @apply flex w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-ink px-1 py-2 text-white;
     }
+    .stub-day { @apply font-display text-2xl leading-none; }
+    .stub-month { @apply mt-1 text-xs font-bold leading-none text-flash; }
 
-    .link {
-        @apply text-indigo-600 hover:text-indigo-800 underline-offset-2 hover:underline;
+    /* Moderação: seleção visível e ações com área de toque */
+    #mod-grid > li { position: relative; }
+    #mod-grid > li.ring-indigo-500 { @apply ring-4; }
+    #mod-grid > li.ring-indigo-500::after {
+        content: "\2713";
+        @apply pointer-events-none absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white shadow;
+    }
+    #mod-grid > li > div { @apply gap-2 p-2; }
+    #mod-grid > li > div > button { @apply min-h-touch flex-1 rounded-lg px-2 text-sm; }
+    #mod-grid > li > div > a { @apply inline-flex min-h-touch items-center px-1 text-sm font-semibold text-brand-700; }
+    #mod-grid > li > div > span { @apply text-sm; }
+
+    @media (max-width: 767px) {
+        /* Barra de lote: segue o fluxo normal e vira barra fixa no rodapé quando há seleção */
+        [data-mod-toolbar]:has([data-batch]:not(:disabled)) {
+            @apply fixed inset-x-0 bottom-0 z-40 m-0 grid grid-cols-2 gap-2 border-t border-line bg-white px-4 pt-3 shadow-bar;
+            padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+        }
+        [data-mod-toolbar]:has([data-batch]:not(:disabled)) [data-selected] { @apply order-first col-span-2 text-center text-base; }
+        [data-mod-toolbar]:has([data-batch]:not(:disabled)) [data-select-all] { @apply hidden; }
+        [data-mod-toolbar]:has([data-batch]:not(:disabled)) [data-clear] { @apply order-last col-span-2 border-0 bg-transparent shadow-none; }
+        [data-mod-toolbar] [data-batch] { @apply min-h-touch flex-1 text-base; }
+        #mod-root:has([data-batch]:not(:disabled)) { padding-bottom: 9rem; }
     }
 
     /* Honeypot: fora da tela para humanos, presente para robôs. */
@@ -27,4 +95,12 @@
         height: 1px;
         overflow: hidden;
     }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    @keyframes live-pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: .45; transform: scale(.8); }
+    }
+    .live-dot { animation: live-pulse 1.6s ease-in-out infinite; }
 }

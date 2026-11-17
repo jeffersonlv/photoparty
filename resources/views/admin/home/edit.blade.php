@@ -36,7 +36,7 @@
             <p class="adm-muted">{{ __('admin.home.no_items') }}</p>
         @else
             <div class="adm-table-wrap">
-                <table class="adm-table">
+                <table class="adm-table adm-table--stack">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -49,9 +49,9 @@
                         @forelse ($section->items as $item)
                             @php($firstField = array_key_first($schema['items']['fields']))
                             <tr>
-                                <td>{{ $loop->iteration }}</td>
-                                <td>{{ \Illuminate\Support\Str::limit($item->data[app()->getLocale()][$firstField] ?? ($item->data['pt_BR'][$firstField] ?? ''), 80) }}</td>
-                                <td><span @class(['adm-badge', 'adm-badge--active' => $item->enabled, 'adm-badge--cancelled' => ! $item->enabled])>{{ $item->enabled ? __('admin.common.on') : __('admin.common.off') }}</span></td>
+                                <td data-label="#">{{ $loop->iteration }}</td>
+                                <td data-label="{{ __('admin.home.fields.title') }}">{{ \Illuminate\Support\Str::limit($item->data[app()->getLocale()][$firstField] ?? ($item->data['pt_BR'][$firstField] ?? ''), 80) }}</td>
+                                <td data-label="{{ __('admin.home.status') }}"><span @class(['adm-badge', 'adm-badge--active' => $item->enabled, 'adm-badge--cancelled' => ! $item->enabled])>{{ $item->enabled ? __('admin.common.on') : __('admin.common.off') }}</span></td>
                                 <td class="adm-actions">
                                     <form method="POST" action="{{ route('admin.home.items.toggle', [$section, $item]) }}">
                                         @csrf

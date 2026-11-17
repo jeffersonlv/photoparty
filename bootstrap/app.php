@@ -17,7 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function (): void {
             // Um arquivo de rotas por módulo, para equipes/agentes trabalharem em paralelo
             // sem editar o mesmo arquivo. Todos usam o grupo de middleware "web".
-            foreach (['guest', 'screen', 'photos', 'admin', 'home'] as $module) {
+            foreach (['guest', 'screen', 'photos', 'frames', 'admin', 'home'] as $module) {
                 $file = base_path("routes/{$module}.php");
 
                 if (is_file($file)) {

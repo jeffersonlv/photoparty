@@ -1,11 +1,14 @@
 @props(['title' => null])
 <x-layouts.base :title="$title">
-    <main class="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-10">
-        <a href="{{ route('home') }}" class="mb-6 text-center text-2xl font-bold tracking-tight">{{ __('app.name') }}</a>
-        <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+    <main class="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pb-10 pt-8 sm:justify-center">
+        <a href="{{ route('home') }}" class="mx-auto mb-6 flex min-h-touch items-center gap-3 rounded-lg">
+            <x-logo size="h-10 w-10" />
+            <span class="font-display text-3xl tracking-wide">{{ __('app.name') }}</span>
+        </a>
+        <div class="card sm:p-8">
             <x-flash />
             {{ $slot }}
         </div>
-        <x-locale-switcher class="mt-6 justify-center" />
+        <x-locale-switcher class="mt-6 justify-center gap-2 text-sm [&_a]:inline-flex [&_a]:min-h-touch [&_a]:min-w-touch [&_a]:items-center [&_a]:justify-center [&_a]:rounded-lg" />
     </main>
 </x-layouts.base>

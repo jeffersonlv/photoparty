@@ -84,12 +84,17 @@ class GuestEventController extends Controller
             'askGuestName' => (bool) $event->ask_guest_name,
             // URLs relativas: mesma origem da página (CSP connect-src 'self').
             'uploadUrl' => route('guest.photos.store', ['slug' => $event->slug, 't' => $token], false),
+            // Modelos prontos (public/frames) + molduras personalizadas ativas no evento
+            // (Event::activeFrames já exclui custom de outra conta ou de plano sem permissão).
             'frames' => $event->activeFrames()
-                ->filter(fn (Frame $frame) => $frame->type === 'template' && $frame->template_key !== null)
+                ->filter(fn (Frame $frame) => $frame->isCustom() || ($frame->type === Frame::TYPE_TEMPLATE && $frame->template_key !== null))
                 ->map(fn (Frame $frame) => [
                     'key' => $frame->publicKey(),
                     'name' => $frame->config['name'][$lang] ?? $frame->name,
-                    'configUrl' => '/frames/'.rawurlencode($frame->template_key).'/config.json',
+                    'configUrl' => $frame->isCustom()
+                        ? route('guest.frames.asset', ['slug' => $event->slug, 'frame' => $frame->uuid, 'file' => 'config.json', 't' => $token], false)
+                        : '/frames/'.rawurlencode($frame->template_key).'/config.json',
+                    'orientations' => $frame->orientations(),
                     'texts' => $this->organizerTexts($event),
                 ])
                 ->values()

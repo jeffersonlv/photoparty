@@ -129,7 +129,25 @@ class Event extends Model
     public function activeFrames(): \Illuminate\Database\Eloquent\Collection
     {
         // Moldura desativada pelo admin some para o convidado, mesmo se já ligada ao evento.
-        return $this->frames()->withoutGlobalScopes()->where('frames.is_active', true)->get();
+        $frames = $this->frames()->withoutGlobalScopes()->where('frames.is_active', true)->get();
+
+        // Moldura personalizada (módulo 8): só da própria conta do evento e só enquanto a
+        // conta puder usá-las (plano pago com allows_custom_frames). Rebaixou o plano => some.
+        $customAllowed = null;
+
+        return $frames->filter(function (Frame $frame) use (&$customAllowed) {
+            if ($frame->type !== Frame::TYPE_CUSTOM) {
+                return true;
+            }
+
+            if ((int) $frame->account_id !== (int) $this->account_id) {
+                return false;
+            }
+
+            $customAllowed ??= (bool) Account::query()->find($this->account_id)?->canUseCustomFrames();
+
+            return $customAllowed;
+        })->values();
     }
 
 

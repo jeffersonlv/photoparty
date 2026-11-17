@@ -8,12 +8,12 @@ Plataforma de fotos para eventos: o convidado escaneia um QR code, tira uma foto
 
 ## Stack (não trocar sem perguntar)
 
-- PHP 8.3 + Laravel 11, MySQL, Blade + Alpine.js, Vite (build feito localmente).
+- PHP 8.3 + Laravel 13 (composer `config.platform.php` = 8.3), MySQL, Blade + Alpine.js, Vite (build feito localmente).
 - Sem Node no servidor: o build (`npm run build`) roda na máquina local e só `public/build` vai para o servidor.
 - Hospedagem: **só o Hostinger** (hospedagem compartilhada). Proibido depender de serviços externos: nada de Redis, WebSocket/Reverb, S3/GCS, CDN, Google Fonts, captcha externo, analytics de terceiros, APIs de QR code.
   - Fila: driver `database`, processada pelo cron (`schedule:run` a cada minuto chama `queue:work --stop-when-empty --max-time=50`).
   - Tempo real: polling (telão a cada 5 s, moderação a cada 5 s).
-  - Storage: disco local, `storage/app/tenants/...`.
+  - Storage: disco local, `storage/app/private/tenants/...`.
   - E-mail: SMTP do Hostinger.
   - Pagamento: fora do MVP (admin ativa plano manualmente).
 - Ambiente local: Docker em `C:\Users\jeffe\CLAUDE\ambienteDev\Ambiente de Desenvolvimento\hostinger-dev`, que espelha o Hostinger (vhosts `.test`).

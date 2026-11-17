@@ -74,6 +74,8 @@ class ScreenController extends Controller
             'qrImage' => $qrImage,
             'ended' => $ended,
             'trial' => $event->is_trial || $account?->isOnTrial(),
+            // Faixa diagonal "DEMONSTRAÇÃO" para toda conta que não é active.
+            'demo' => ! ($account?->canDownloadPhotos() ?? false),
             'config' => [
                 'pollUrl' => route('screen.photos', ['token' => $token], false),
                 'secondsPerPhoto' => $settings['seconds_per_photo'],

@@ -132,7 +132,7 @@ function boot() {
 
     const pick = document.createElement('button');
     pick.type = 'button';
-    pick.className = 'block aspect-[4/5] w-full bg-slate-200';
+    pick.className = 'relative block aspect-[4/5] w-full bg-slate-200';
     pick.addEventListener('click', () => toggle(photo.uuid));
 
     const img = document.createElement('img');
@@ -141,6 +141,13 @@ function boot() {
     img.loading = 'lazy';
     img.className = 'h-full w-full object-cover';
     pick.appendChild(img);
+
+    if (config.demo) {
+      const demo = document.createElement('span');
+      demo.className = 'pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 -rotate-[30deg] bg-black/40 py-1 text-center text-xs font-extrabold tracking-widest text-white';
+      demo.textContent = label('demo');
+      pick.appendChild(demo);
+    }
     li.appendChild(pick);
 
     const bar = document.createElement('div');

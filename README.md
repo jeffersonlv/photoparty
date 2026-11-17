@@ -132,6 +132,17 @@ O agendamento (`routes/console.php`) roda, nesta ordem: `accounts:expire-trials`
 - `EventPolicy::moderate`: owner **e** moderator da conta (outra conta → 404; evento expirado → 403). O botão "Abrir telão" (token da cópia criptografada, nova aba) na página do evento aparece só para quem pode gerenciar tokens (owner).
 - Migration `2026_11_16_120000`: `photos.approved_at` passa a ter microssegundos (e `Photo::$dateFormat` grava com `.u`), para o cursor não perder fotos aprovadas no mesmo segundo.
 
+## Galeria e download
+
+Regra de plano (decisão do dono do produto; substitui a do SPEC), centralizada em `Account::canDownloadPhotos()` (= status `active`) e `App\Services\Photos\PhotoVariants`:
+
+- **Conta `active`:** miniaturas normais (~400 px), download de cada foto em tamanho original e ZIP do evento. Sem marca d'água.
+- **Conta em teste (`trial`, `trial_ended`) ou `past_due`/`cancelled`:** só prévia de baixíssima resolução (lado maior 200 px, JPEG ~60), sem nenhum download. Vale para galeria e moderação.
+- `media.show`: conta não-active pedindo `thumb` recebe a prévia (gerada com GD a partir do thumb e cacheada em `.../preview-v2/{uuid}.jpg`, já com faixa diagonal "DEMONSTRAÇÃO"/"DEMO" conforme o idioma do evento); pedindo `original` recebe 404.
+- O telão (`media.signed`) não muda as imagens; para conta não-active ele exibe uma faixa diagonal CSS "DEMONSTRAÇÃO · Conta de teste" no lugar do selo. Galeria e moderação mostram o rótulo "DEMONSTRAÇÃO" sobre cada miniatura.
+- Galeria: `GET /events/{event}/gallery` (aprovadas, paginada, `routes/photos.php`). Download: `/events/{event}/photos/{photo}/download` (`evento-slug-0001.jpg`). Conta não-active vê o aviso de prévia e recebe 404 nos downloads.
+- ZIP: o botão cria um registro em `exports` e despacha `BuildEventExport` (fila `database`, cron). Um ZIP em andamento por evento; arquivo em `tenants/{account}/events/{event}/exports/{uuid}.zip` (CM_STORE). A tela mostra o status e um link "Atualizar" (sem JS). O ZIP expira em 7 dias; `exports:purge-expired` (agendado de hora em hora) apaga o arquivo.
+
 ## Roteiro de teste manual do ciclo completo
 
 Pré-requisitos: `composer install`, `.env` com `APP_KEY`, `php artisan migrate --seed`, `npm install && npm run build` (ou `npm run dev`). Rode `php artisan serve --host=0.0.0.0` e use o IP da máquina na rede local (por exemplo `http://192.168.0.10:8000`), tanto no computador quanto no celular. Defina `PHOTOPARTY_PUBLIC_URL` com esse mesmo endereço para o QR e o link do convidado apontarem para a sua máquina, e rode `php artisan queue:work` e `php artisan schedule:work` em outros terminais se quiser os comandos agendados.

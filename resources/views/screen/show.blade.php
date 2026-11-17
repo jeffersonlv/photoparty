@@ -1,5 +1,5 @@
 {{--
-    Telão: /screen/{token}. Recebe $event, $qrImage (data URI ou null), $ended, $trial, $config, $settings.
+    Telão: /screen/{token}. Recebe $event, $qrImage (data URI ou null), $ended, $trial, $demo, $config, $settings.
     CSP estrita: sem script/estilo inline. Os dados vão num bloco JSON (não executa) lido por
     resources/js/screen/index.js. Tudo impresso com {{ }}.
 --}}
@@ -39,7 +39,9 @@
             </figure>
         @endif
 
-        @if ($trial)
+        @if ($demo)
+            <div class="sc-demo" aria-hidden="true"><span>{{ __('screen.demo_banner') }}</span></div>
+        @elseif ($trial)
             <div class="sc-seal">{{ __('screen.brand') }}</div>
         @endif
 

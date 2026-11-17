@@ -19,6 +19,10 @@
         </div>
 
         <div class="flex flex-wrap gap-2">
+            @can('view', $event)
+                <a href="{{ route('events.gallery', $event) }}" class="inline-flex rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50">{{ __('gallery.link') }}</a>
+            @endcan
+
             @can('moderate', $event)
                 <a href="{{ route('events.moderation', $event) }}" class="inline-flex rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50">{{ __('app.events.moderation_link') }} ({{ $event->photos()->where('status', 'pending')->count() }})</a>
             @endcan

@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\AccountStatus;
 use App\Enums\EventStatus;
+use App\Enums\AccountStatus;
 use App\Models\Account;
 use App\Models\AuditLog;
 use App\Models\Event;
 use App\Models\Photo;
+use App\Services\Photos\PhotoVariants;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -20,10 +21,15 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  *
  * {photo} é o uuid; a resolução é manual (sem route model binding) para que todo 404
  * passe pelo GuardMediaNotFound (rate limit + log de rajadas).
- * Conta em trial_ended só recebe a miniatura (original => 404).
+ * Regra de plano (PhotoVariants): conta não-active só recebe a prévia (thumb => preview 200 px,
+ * original => 404). No telão (signed) vale o comportamento antigo: trial_ended não recebe original.
  */
 class MediaController extends Controller
 {
+    public function __construct(private readonly PhotoVariants $variants)
+    {
+    }
+
     public function show(Request $request, string $photo, string $variant): BinaryFileResponse
     {
         // Global scope da conta: foto de outro tenant nem é encontrada (404).
@@ -37,7 +43,17 @@ class MediaController extends Controller
             AuditLog::record('media.admin_view', $model, ['variant' => $variant]);
         }
 
-        return $this->serve($model, $variant);
+        $account = Account::query()->find($model->account_id);
+
+        abort_if($account === null, 404);
+
+        $resolved = $this->variants->resolve($account, $variant);
+
+        abort_if($resolved === null, 404);
+
+        $path = $resolved === 'preview' ? $this->variants->ensurePreview($model) : $model->pathFor($resolved);
+
+        return $this->serve($model, $account, $path);
     }
 
     public function signed(string $photo, string $variant): BinaryFileResponse
@@ -55,19 +71,18 @@ class MediaController extends Controller
 
         abort_if($event === null || $event->computeStatus() === EventStatus::Expired, 404);
 
-        return $this->serve($model, $variant);
-    }
-
-    private function serve(Photo $photo, string $variant): BinaryFileResponse
-    {
-        $account = Account::query()->find($photo->account_id);
+        $account = Account::query()->find($model->account_id);
 
         abort_if($account === null, 404);
 
-        // Regra de plano: teste encerrado sem assinatura => só miniatura.
+        // Telão inalterado: teste encerrado sem assinatura => só miniatura.
         abort_if($variant === 'original' && $account->status === AccountStatus::TrialEnded, 404);
 
-        $path = $photo->pathFor($variant);
+        return $this->serve($model, $account, $model->pathFor($variant));
+    }
+
+    private function serve(Photo $photo, Account $account, ?string $path): BinaryFileResponse
+    {
         $disk = Storage::disk('local');
 
         // Defesa extra: o caminho tem de estar dentro da pasta do tenant.

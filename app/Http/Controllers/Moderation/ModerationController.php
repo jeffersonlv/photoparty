@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Moderation;
 
-use App\Enums\AccountStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Photo;
+use App\Services\Photos\PhotoVariants;
 use App\Services\PhotoModerator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,7 +23,7 @@ class ModerationController extends Controller
 
     public const BATCH_MAX = 200;
 
-    public function __construct(private readonly PhotoModerator $moderator)
+    public function __construct(private readonly PhotoModerator $moderator, private readonly PhotoVariants $variants)
     {
     }
 
@@ -42,6 +42,7 @@ class ModerationController extends Controller
                 'limit' => self::LIST_LIMIT,
                 'defaultTab' => $event->moderation === 'post' ? 'approved' : 'pending',
                 'moderation' => $event->moderation,
+                'demo' => ! ($event->account?->canDownloadPhotos() ?? false),
             ],
         ]);
     }
@@ -69,7 +70,8 @@ class ModerationController extends Controller
             : $query->orderByDesc('updated_at')->orderByDesc('id');
 
         $rows = $query->limit(self::LIST_LIMIT + 1)->get();
-        $thumbsOnly = $event->account?->status === AccountStatus::TrialEnded;
+        // Conta com plano pago abre o original; as demais só veem a prévia (PhotoVariants).
+        $canOpenOriginal = $event->account !== null && $this->variants->resolve($event->account, 'original') !== null;
 
         return response()->json([
             'counts' => [
@@ -82,7 +84,7 @@ class ModerationController extends Controller
             'photos' => $rows->take(self::LIST_LIMIT)->map(fn (Photo $photo) => [
                 'uuid' => $photo->uuid,
                 'thumb' => $photo->mediaUrl('thumb'),
-                'full' => $photo->mediaUrl($thumbsOnly ? 'thumb' : 'original'),
+                'full' => $photo->mediaUrl($canOpenOriginal ? 'original' : 'thumb'),
                 'guest_name' => $photo->guest_name,
                 'orientation' => $photo->orientation,
                 'at' => $photo->created_at?->toIso8601String(),

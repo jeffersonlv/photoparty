@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'demo' => 'DEMO',
     'title' => 'Moderation',
     'back' => 'Back to event',
     'pending_count' => ':count pending',

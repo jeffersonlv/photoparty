@@ -75,16 +75,20 @@ it('never prints tokens in the page', function () {
     expect($html)->not->toContain((string) $this->event->uploadToken());
 });
 
-it('shows the Photo Party seal while the account is on trial', function () {
-    $this->get(screenUrl($this->event))->assertDontSee('class="sc-seal"', false);
+it('shows the diagonal demo banner instead of the seal for non-active accounts', function () {
+    $this->get(screenUrl($this->event))->assertDontSee('sc-demo', false)->assertDontSee('DEMONSTRAÇÃO');
 
     $trialEvent = GuestUpload::liveEvent(Account::factory()->create(), ['is_trial' => true]);
-    $this->get(screenUrl($trialEvent))->assertSee('class="sc-seal"', false);
+    $this->get(screenUrl($trialEvent))->assertSee('class="sc-demo"', false)->assertSee('DEMONSTRAÇÃO · Conta de teste')->assertDontSee('class="sc-seal"', false);
+
+    $enEvent = GuestUpload::liveEvent(Account::factory()->create(), ['language' => 'en']);
+    app()->setLocale('en');
+    $this->get(screenUrl($enEvent))->assertSee('DEMO · Trial account');
 
     $trialAccount = Account::factory()->create();
     expect($trialAccount->isOnTrial())->toBeTrue();
     $other = GuestUpload::liveEvent($trialAccount);
-    $this->get(screenUrl($other))->assertSee('class="sc-seal"', false);
+    $this->get(screenUrl($other))->assertSee('class="sc-demo"', false);
 });
 
 it('returns 404 for unknown, malformed or revoked tokens', function () {

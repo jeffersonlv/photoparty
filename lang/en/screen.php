@@ -2,6 +2,7 @@
 
 return [
     'brand' => 'Photo Party',
+    'demo_banner' => 'DEMO · Trial account',
     'starts_at' => 'Starts :date',
     'waiting' => 'Waiting for the first photos…',
     'scan' => 'Scan and join in',

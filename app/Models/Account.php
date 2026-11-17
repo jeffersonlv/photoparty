@@ -64,6 +64,15 @@ class Account extends Model
     }
 
     /**
+     * Regra única de mídia: só conta com plano pago (active) baixa originais e ZIP e vê
+     * miniaturas normais. Teste, teste encerrado, past_due e cancelled: só prévia mínima.
+     */
+    public function canDownloadPhotos(): bool
+    {
+        return $this->isActive();
+    }
+
+    /**
      * Teste ainda não usado: conta em trial cujo evento de teste não foi publicado.
      */
     public function hasTrialAvailable(): bool

@@ -13,7 +13,7 @@
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-CTHdIn4k.css",
+    "file": "assets/app-C0c75qfv.css",
     "name": "app",
     "names": [
       "app.css"
@@ -49,7 +49,7 @@
     "isEntry": true
   },
   "resources/css/screen.css": {
-    "file": "assets/screen-cznq-osK.css",
+    "file": "assets/screen-Cj87QlnT.css",
     "name": "screen",
     "names": [
       "screen.css"
@@ -76,7 +76,7 @@
     ]
   },
   "resources/js/moderation/index.js": {
-    "file": "assets/index-CLFKwtKt.js",
+    "file": "assets/index-CE_mujl4.js",
     "name": "index",
     "src": "resources/js/moderation/index.js",
     "isEntry": true

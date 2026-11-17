@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'demo' => 'DEMONSTRAÇÃO',
     'title' => 'Moderação',
     'back' => 'Voltar ao evento',
     'pending_count' => ':count pendentes',

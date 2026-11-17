@@ -53,7 +53,7 @@ class Photo extends Model
         return $this->belongsTo(Frame::class);
     }
 
-    public const VARIANTS = ['thumb', 'original'];
+    public const VARIANTS = ['thumb', 'original', 'preview'];
 
     public function isPending(): bool
     {
@@ -70,8 +70,21 @@ class Photo extends Model
         return match ($variant) {
             'original' => $this->original_path,
             'thumb' => $this->thumb_path,
+            'preview' => $this->previewPath(),
             default => null,
         };
+    }
+
+    /**
+     * Caminho da prévia de baixíssima resolução: .../thumb/{uuid}.jpg => .../preview-v2/{uuid}.jpg.
+     */
+    public function previewPath(): ?string
+    {
+        if ($this->thumb_path === null || ! str_contains($this->thumb_path, '/thumb/')) {
+            return null;
+        }
+
+        return substr_replace($this->thumb_path, '/preview-v2/', strrpos($this->thumb_path, '/thumb/'), strlen('/thumb/'));
     }
 
     /**

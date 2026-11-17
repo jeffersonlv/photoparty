@@ -26,7 +26,7 @@ class LoginController extends Controller
 
         AuditLog::record('auth.login');
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended($request->user()->homeRoute());
     }
 
     public function destroy(Request $request): RedirectResponse

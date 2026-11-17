@@ -80,3 +80,12 @@ it('resets the password with a valid token', function () {
 
     expect(Hash::check('Nova-Senha-2026', $user->fresh()->password))->toBeTrue();
 });
+
+it('sends the admin to the admin area after login', function () {
+    $admin = \App\Models\User::factory()->admin()->create(['password' => 'Str0ng!Passw0rd']);
+
+    $this->post(route('login'), ['email' => $admin->email, 'password' => 'Str0ng!Passw0rd'])
+        ->assertRedirect(route('admin.dashboard', absolute: false));
+
+    $this->followingRedirects()->get(route('admin.dashboard'))->assertOk();
+});

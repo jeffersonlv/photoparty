@@ -59,6 +59,15 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Account::class);
     }
 
+    /**
+     * Página inicial depois do login: admin vai para /admin (não tem conta de
+     * organizador, então /dashboard responderia 404); os demais, para o painel.
+     */
+    public function homeRoute(): string
+    {
+        return $this->isAdmin() ? route('admin.dashboard', absolute: false) : route('dashboard', absolute: false);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === UserRole::Admin;

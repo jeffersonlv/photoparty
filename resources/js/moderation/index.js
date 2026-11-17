@@ -142,7 +142,7 @@ function boot() {
     img.className = 'h-full w-full object-cover';
     pick.appendChild(img);
 
-    if (config.demo) {
+    if (cfg.demo) {
       const demo = document.createElement('span');
       demo.className = 'pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 -rotate-[30deg] bg-black/40 py-1 text-center text-xs font-extrabold tracking-widest text-white';
       demo.textContent = label('demo');

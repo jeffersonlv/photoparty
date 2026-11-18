@@ -32,7 +32,7 @@ class GuestPhotoUploader
     }
 
     /**
-     * @param  array{orientation:string, filter:?string, guest_name:?string, guest_texts:array<string,string>}  $data
+     * @param  array{orientation:string, filter:?string, guest_name:?string, guest_texts:array<string,string>, consent_version:string}  $data
      */
     public function store(
         Event $event,
@@ -67,7 +67,9 @@ class GuestPhotoUploader
 
                 $photos = Photo::withoutGlobalScopes()->where('event_id', $locked->id);
 
-                if ((clone $photos)->count() >= $locked->photoLimit()) {
+                // Fotos excluídas pelo próprio convidado não ocupam vaga do evento, mas continuam
+                // contando no limite por aparelho (senão excluir/reenviar furaria o limite).
+                if ((clone $photos)->where('status', '!=', Photo::STATUS_DELETED)->count() >= $locked->photoLimit()) {
                     throw UploadRejected::eventLimit();
                 }
 
@@ -95,6 +97,9 @@ class GuestPhotoUploader
                 $photo->event_id = $locked->id;
                 $photo->frame_id = $frame?->id;
                 $photo->device_hash = $deviceHash;
+                // Prova do consentimento (LGPD art. 8º §2º / GDPR art. 7(1)).
+                $photo->consent_version = $data['consent_version'];
+                $photo->consented_at = now();
                 $photo->original_path = $paths['original'];
                 $photo->thumb_path = $paths['thumb'];
                 $photo->bytes = strlen($original) + strlen($thumb);
@@ -126,13 +131,39 @@ class GuestPhotoUploader
     }
 
     /**
-     * Remove registro e arquivos (foto pendente apagada pelo próprio convidado).
+     * Exclusão pelo próprio convidado (revogação do consentimento), em qualquer status.
+     *
+     * Apaga original, miniatura e prévia do disco. Foto que nunca foi ao telão (pendente ou
+     * rejeitada) perde também o registro. Foto aprovada vira um registro mínimo com status
+     * "deleted" (sem arquivos, nome, textos nem moldura) só para o telão retirá-la no próximo
+     * polling; o privacy:enforce-retention apaga esse registro depois de algumas horas.
      */
     public function delete(Photo $photo): void
     {
-        $paths = array_filter([$photo->original_path, $photo->thumb_path]);
+        $paths = array_values(array_filter([$photo->original_path, $photo->thumb_path, $photo->previewPath()]));
+        $tombstone = $photo->status === 'approved';
 
-        DB::transaction(fn () => Photo::withoutGlobalScopes()->whereKey($photo->getKey())->delete());
+        DB::transaction(function () use ($photo, $tombstone) {
+            $query = Photo::withoutGlobalScopes()->whereKey($photo->getKey());
+
+            if (! $tombstone) {
+                $query->delete();
+
+                return;
+            }
+
+            $query->update([
+                'status' => Photo::STATUS_DELETED,
+                'guest_name' => null,
+                'guest_texts' => null,
+                'frame_id' => null,
+                'original_path' => null,
+                'thumb_path' => null,
+                'bytes' => 0,
+                'approved_at' => null,
+                'updated_at' => now()->format('Y-m-d H:i:s.u'),
+            ]);
+        });
 
         Storage::disk('local')->delete($paths);
     }

@@ -72,6 +72,9 @@ final class GuestUpload
             'orientation' => $orientation,
             'guest_name' => '',
             'guest_texts' => '{}',
+            // Consentimento LGPD/GDPR (obrigatório no servidor).
+            'consent' => '1',
+            'consent_version' => config('photoparty.privacy.consent_version'),
         ], $overrides);
     }
 

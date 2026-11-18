@@ -22,7 +22,10 @@ use Illuminate\Validation\ValidationException;
  * Envio e remoção de fotos pelo convidado (SPEC 9, 13.5).
  *
  * POST   /e/{slug}/photos?t=...           => 201 {uuid, status}
- * DELETE /e/{slug}/photos/{photo}?t=...   => 204 (só a própria foto pendente)
+ * DELETE /e/{slug}/photos/{photo}?t=...   => 204 (a própria foto, em qualquer status, enquanto o evento está ao vivo)
+ *
+ * Consentimento (LGPD art. 7º I / GDPR art. 6(1)(a)): o envio exige consent=1 e
+ * consent_version igual à versão vigente (config photoparty.privacy.consent_version); sem isso => 422.
  */
 class GuestPhotoController extends Controller
 {
@@ -73,18 +76,18 @@ class GuestPhotoController extends Controller
 
         $deviceHash = GuestDevice::limiterKey($request);
 
+        // Decisão do produto: "Minhas fotos" (ver, baixar, excluir) vale enquanto o evento está ao vivo.
+        abort_unless($event->computeStatus() === EventStatus::Live, 404);
+
         $model = $deviceHash === null ? null : Photo::withoutGlobalScopes()
             ->where('event_id', $event->id)
-            ->where('uuid', $photo)
+            ->where('uuid', strtolower($photo))
             ->where('device_hash', $deviceHash)
+            ->where('status', '!=', Photo::STATUS_DELETED)
             ->first();
 
         // Foto de outro aparelho/evento: 404 (não revela que existe).
         abort_if($model === null, 404);
-
-        if ($model->status !== 'pending') {
-            return response()->json(['message' => __('upload.errors.not_pending')], 409);
-        }
 
         $this->uploader->delete($model);
 
@@ -92,7 +95,7 @@ class GuestPhotoController extends Controller
     }
 
     /**
-     * @return array{0: ?Frame, 1: array{orientation:string, filter:?string, guest_name:?string, guest_texts:array<string,string>}}
+     * @return array{0: ?Frame, 1: array{orientation:string, filter:?string, guest_name:?string, guest_texts:array<string,string>, consent_version:string}}
      */
     private function validated(Request $request, Event $event): array
     {
@@ -105,7 +108,14 @@ class GuestPhotoController extends Controller
             'filter' => ['nullable', 'string', 'in:'.implode(',', self::FILTERS)],
             'guest_name' => ['nullable', 'string', 'max:60', 'not_regex:/[<>]/'],
             'guest_texts' => ['nullable', 'string', 'max:4000'],
-        ], [], [
+            'consent' => ['required', 'accepted'],
+            'consent_version' => ['required', 'string', 'in:'.config('photoparty.privacy.consent_version')],
+        ], [
+            'consent.required' => __('upload.errors.consent'),
+            'consent.accepted' => __('upload.errors.consent'),
+            'consent_version.required' => __('upload.errors.consent_version'),
+            'consent_version.in' => __('upload.errors.consent_version'),
+        ], [
             'photo' => __('upload.attributes.photo'),
             'thumb' => __('upload.attributes.thumb'),
             'guest_name' => __('upload.attributes.guest_name'),
@@ -152,6 +162,7 @@ class GuestPhotoController extends Controller
             'filter' => $input['filter'] ?? 'none',
             'guest_name' => $guestName === '' ? null : $guestName,
             'guest_texts' => $texts,
+            'consent_version' => (string) $input['consent_version'],
         ]];
     }
 

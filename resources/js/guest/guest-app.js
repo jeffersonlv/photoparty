@@ -15,9 +15,31 @@ import { attachGestures } from './gestures.js';
 import { exportImages } from './export.js';
 import { uploadPhoto } from './upload.js';
 import { createTranslator } from './i18n.js';
+import {
+  deleteMyPhoto, fetchMyPhotos, statusClass, statusKey, withoutPhoto,
+} from './my-photos.js';
 
 const STAGE_STEPS = ['frame', 'filter', 'adjust', 'texts', 'preview'];
 const CONSENT_KEY = 'pp_consent_v1';
+// etapas a partir das quais o convidado pode abrir "Minhas fotos"
+const MINE_FROM = ['welcome', 'source', 'done'];
+
+/** Chave do consentimento lembrado no aparelho: muda com a versao do texto (novo aceite). */
+export function consentStorageKey(cfg) {
+  return `${CONSENT_KEY}:${cfg.consentVersion || 'none'}:${cfg.name}`;
+}
+
+/** Dados do aviso de privacidade (controlador = organizador do evento). */
+export function normalizePrivacy(raw = {}) {
+  const sameOrigin = (u) => (typeof u === 'string' && u.startsWith('/') && !u.startsWith('//') ? u : '');
+  const days = Number.parseInt(raw?.retentionDays, 10);
+  return {
+    controller: String(raw?.controller ?? ''),
+    retentionDays: Number.isFinite(days) && days > 0 ? days : 0,
+    policyUrl: sameOrigin(raw?.policyUrl),
+    requestUrl: sameOrigin(raw?.requestUrl),
+  };
+}
 
 /** Normaliza o objeto do evento vindo do Laravel, com padroes seguros. */
 export function normalizeEventConfig(raw = {}) {
@@ -27,6 +49,9 @@ export function normalizeEventConfig(raw = {}) {
     welcome: String(raw.welcome ?? ''),
     moderation: !!raw.moderation,
     uploadUrl: String(raw.uploadUrl ?? ''),
+    myPhotosUrl: String(raw.myPhotosUrl ?? ''),
+    consentVersion: String(raw.consentVersion ?? ''),
+    privacy: normalizePrivacy(raw.privacy),
     language: String(raw.language ?? 'pt_BR'),
     askGuestName: !!raw.askGuestName,
     csrfToken: raw.csrfToken ?? null,
@@ -64,6 +89,8 @@ export function guestApp(rawConfig, deps = {}) {
   const lang = cfg.language;
   const t = createTranslator(typeof window !== 'undefined' ? window.PHOTO_PARTY_I18N : {});
   const send = deps.uploadPhoto ?? uploadPhoto;
+  const fetchImpl = deps.fetch ?? (typeof fetch !== 'undefined' ? fetch.bind(globalThis) : null);
+  const ask = deps.confirm ?? ((msg) => (typeof window !== 'undefined' ? window.confirm(msg) : true));
 
   // estado nao reativo
   let photo = null; // canvas com a foto ja orientada
@@ -74,6 +101,7 @@ export function guestApp(rawConfig, deps = {}) {
   let raf = 0;
   let applySeq = 0;
   let abort = null;
+  let thumbSeq = 0;
   const frameCache = new Map(); // key -> config
   const assetCache = new Map(); // key:orientation -> {background, overlay}
 
@@ -109,17 +137,26 @@ export function guestApp(rawConfig, deps = {}) {
     doneMessage: '',
     ended: false,
 
+    // "Minhas fotos"
+    mine: [],
+    mineLoading: false,
+    mineError: '',
+    mineGone: false,
+    mineBusy: '',
+    stepBeforeMine: 'welcome',
+
     /* ---------------- ciclo de vida ---------------- */
 
     init() {
       try {
-        this.consent = localStorage.getItem(`${CONSENT_KEY}:${cfg.name}`) === '1';
+        this.consent = localStorage.getItem(consentStorageKey(cfg)) === '1';
       } catch {
         this.consent = false;
       }
       this.$watch('step', (step) => this.onStep(step));
       window.addEventListener('pagehide', () => this.releaseCamera());
       window.addEventListener('resize', () => this.render());
+      window.visualViewport?.addEventListener('resize', () => this.render());
     },
 
     t,
@@ -135,7 +172,6 @@ export function guestApp(rawConfig, deps = {}) {
     get isStep_preview() { return this.step === 'preview'; },
     get isStep_done() { return this.step === 'done'; },
     get isStep_ended() { return this.step === 'ended'; },
-    get showHeaderEvent() { return this.step !== 'welcome'; },
     get cannotAccept() { return !this.consent; },
     get liveMessage() {
       if (this.retrying) return t('retrying');
@@ -156,13 +192,13 @@ export function guestApp(rawConfig, deps = {}) {
     get stageTabindex() { return this.step === 'adjust' ? 0 : -1; },
 
     get noFrameSelected() { return this.frameKey === ''; },
-    get noFrameClass() { return this.noFrameSelected ? 'gp-chip is-on' : 'gp-chip'; },
+    get noFrameClass() { return this.noFrameSelected ? 'gp-tile is-on' : 'gp-tile'; },
     isFrameOn(f) { return this.frameKey === f.key; },
-    frameClass(f) { return this.isFrameOn(f) ? 'gp-chip is-on' : 'gp-chip'; },
+    frameClass(f) { return this.isFrameOn(f) ? 'gp-tile is-on' : 'gp-tile'; },
     chooseNoFrame() { return this.selectFrame(''); },
     chooseFrame(f) { return this.selectFrame(f.key); },
     isFilterOn(f) { return this.filter === f.key; },
-    filterClass(f) { return this.isFilterOn(f) ? 'gp-chip is-on' : 'gp-chip'; },
+    filterClass(f) { return this.isFilterOn(f) ? 'gp-tile is-on' : 'gp-tile'; },
     chooseFilter(f) {
       this.filter = f.key;
       this.render();
@@ -198,7 +234,7 @@ export function guestApp(rawConfig, deps = {}) {
     accept() {
       if (!this.consent) return;
       try {
-        localStorage.setItem(`${CONSENT_KEY}:${cfg.name}`, '1');
+        localStorage.setItem(consentStorageKey(cfg), '1');
       } catch {
         // modo privativo: segue sem lembrar
       }
@@ -228,6 +264,7 @@ export function guestApp(rawConfig, deps = {}) {
       if (step === 'adjust') this.enableGestures();
       if (step === 'texts' && !this.texts.guest_name && this.guestName) this.texts.guest_name = this.guestName;
       if (STAGE_STEPS.includes(step)) this.$nextTick(() => this.render());
+      if (step === 'frame' || step === 'filter') this.$nextTick(() => this.renderThumbs(step));
       // foco no titulo da etapa (leitores de tela e teclado)
       this.$nextTick(() => document.querySelector(`[data-step="${step}"] [data-step-heading]`)?.focus({ preventScroll: true }));
     },
@@ -410,13 +447,13 @@ export function guestApp(rawConfig, deps = {}) {
       this.render();
     },
 
-    /** Escala da previa: so o necessario para a tela (menos pixels = arrastar fluido). */
+    /** Escala da previa: so o necessario para a area livre da tela (menos pixels = arrastar fluido). */
     previewScale() {
-      const stage = this.$refs.stage?.parentElement;
-      const cssW = stage?.clientWidth || 360;
-      const maxH = (typeof window !== 'undefined' ? window.innerHeight : 800) * 0.6;
+      const box = this.$refs.stage?.parentElement; // .gp-stage__fit (ocupa o espaco livre)
+      const cssW = box?.clientWidth || 360;
+      const cssH = box?.clientHeight || (typeof window !== 'undefined' ? window.innerHeight : 800) * 0.6;
       const ratio = orientCfg.width / orientCfg.height;
-      const shownW = Math.min(cssW, maxH * ratio);
+      const shownW = Math.min(cssW, cssH * ratio);
       const dpr = Math.min(2, (typeof window !== 'undefined' && window.devicePixelRatio) || 1);
       return Math.min(1, Math.max(0.2, (shownW * dpr) / orientCfg.width));
     },
@@ -447,6 +484,70 @@ export function guestApp(rawConfig, deps = {}) {
         cfg: orientCfg, assets, photo, view: { ...this.view }, filter: this.filter,
         texts: this.textValues(), lang, scale: this.previewScale(),
       });
+    },
+
+    /* ---------------- miniaturas (tiras de moldura e filtro) ---------------- */
+
+    /** Config + imagens de uma moldura numa orientacao (com cache); null se nao existir nela. */
+    async frameFor(key, orientation) {
+      const desc = cfg.frames.find((f) => f.key === key);
+      if (!desc || !desc.orientations.includes(orientation)) return null;
+      let frame = frameCache.get(key);
+      if (!frame) {
+        frame = await loadFrameConfig(desc.configUrl);
+        frameCache.set(key, frame);
+      }
+      const o = frame.orientations[orientation];
+      if (!o) return null;
+      const cacheKey = `${key}:${orientation}`;
+      let a = assetCache.get(cacheKey);
+      if (!a) {
+        a = await loadOrientationAssets(desc.configUrl, o);
+        assetCache.set(cacheKey, a);
+      }
+      return { o, a, texts: desc.texts ?? {} };
+    },
+
+    /** Desenha as miniaturas reais (foto do convidado + moldura/filtro) na tira do passo. */
+    async renderThumbs(kind) {
+      if (!photo || typeof document === 'undefined') return;
+      const seq = ++thumbSeq;
+      const attr = kind === 'frame' ? 'data-thumb-frame' : 'data-thumb-filter';
+      const nodes = [...(this.$root ?? document).querySelectorAll(`[${attr}]`)];
+      for (const node of nodes) {
+        if (seq !== thumbSeq) return;
+        const value = node.getAttribute(attr) ?? '';
+        let o = orientCfg;
+        let a = assets;
+        let texts = this.textValues();
+        let filter = value;
+        if (kind === 'frame') {
+          filter = this.filter;
+          if (value === '') {
+            o = plainOrientation(this.orientation);
+            a = {};
+          } else {
+            try {
+              const r = await this.frameFor(value, this.orientation);
+              if (!r) continue;
+              ({ o, a, texts } = r);
+            } catch {
+              continue;
+            }
+          }
+        }
+        if (seq !== thumbSeq) return;
+        const dpr = Math.min(2, (typeof window !== 'undefined' && window.devicePixelRatio) || 1);
+        const targetH = (node.clientHeight || 72) * dpr;
+        try {
+          renderComposition(node, {
+            cfg: o, assets: a, photo, view: kind === 'frame' ? { zoom: 1, panX: 0, panY: 0 } : { ...this.view },
+            filter, texts, lang, scale: Math.min(0.3, targetH / o.height),
+          });
+        } catch {
+          // miniatura e so decorativa
+        }
+      }
     },
 
     charsLeft(field) {
@@ -482,6 +583,7 @@ export function guestApp(rawConfig, deps = {}) {
           orientation: this.orientation,
           guestName: limitChars(this.guestName, 60),
           guestTexts,
+          consentVersion: cfg.consentVersion,
           csrfToken: readCsrf(cfg),
         }, {
           signal: abort.signal,
@@ -493,6 +595,7 @@ export function guestApp(rawConfig, deps = {}) {
       } catch (err) {
         if (err?.kind === 'ended') {
           this.ended = true;
+          this.mineGone = true;
           this.go('ended');
         } else {
           this.error = this.messageFor(err);
@@ -527,6 +630,71 @@ export function guestApp(rawConfig, deps = {}) {
     },
 
     get welcomeText() { return cfg.welcome || t('welcome_default'); },
+
+    /* ---------------- aviso de privacidade ---------------- */
+
+    get consentText() {
+      const p = cfg.privacy;
+      const base = t('consent_text', { controller: p.controller || t('consent_controller_fallback') });
+      return p.retentionDays ? `${base} ${t('consent_retention', { days: p.retentionDays })}` : base;
+    },
+    get privacyPolicyUrl() { return cfg.privacy.policyUrl || '#'; },
+    get privacyRequestUrl() { return cfg.privacy.requestUrl || '#'; },
+    get hasPrivacyLinks() { return !!(cfg.privacy.policyUrl && cfg.privacy.requestUrl); },
+
+    /* ---------------- minhas fotos ---------------- */
+
+    get isStep_mine() { return this.step === 'mine'; },
+    get showMineLink() { return !!cfg.myPhotosUrl && !this.mineGone && MINE_FROM.includes(this.step); },
+    get mineEmpty() { return !this.mineLoading && !this.mineError && this.mine.length === 0; },
+    get mineCountText() { return t('mine_count', { count: this.mine.length }); },
+    statusText(p) { return t(statusKey(p.status)); },
+    statusClassOf(p) { return statusClass(p.status); },
+    thumbAlt(p) { return t('mine_photo_alt', { status: t(statusKey(p.status)) }); },
+    isDeleting(p) { return this.mineBusy === p.uuid; },
+
+    openMine() {
+      if (!MINE_FROM.includes(this.step)) return;
+      this.stepBeforeMine = this.step;
+      this.go('mine');
+      return this.loadMine();
+    },
+
+    closeMine() {
+      this.go(this.stepBeforeMine || 'welcome');
+    },
+
+    async loadMine() {
+      if (!fetchImpl) return;
+      this.mineLoading = true;
+      this.mineError = '';
+      const res = await fetchMyPhotos(cfg.myPhotosUrl, { fetchImpl });
+      this.mineLoading = false;
+      if (res.gone) {
+        this.mine = [];
+        this.mineGone = true;
+        this.go('ended');
+        return;
+      }
+      if (!res.ok) {
+        this.mineError = t('mine_load_error');
+        return;
+      }
+      this.mine = res.photos;
+    },
+
+    async removeMine(p) {
+      if (!fetchImpl || this.mineBusy || !ask(t('mine_delete_confirm'))) return;
+      this.mineBusy = p.uuid;
+      this.mineError = '';
+      const result = await deleteMyPhoto(p.deleteUrl, readCsrf(cfg), { fetchImpl });
+      this.mineBusy = '';
+      if (result === 'deleted' || result === 'gone') {
+        this.mine = withoutPhoto(this.mine, p.uuid);
+        return;
+      }
+      this.mineError = t('mine_delete_error');
+    },
   };
 }
 

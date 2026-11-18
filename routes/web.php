@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -61,6 +62,15 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'verified', 'account'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+    // Minha conta (LGPD/GDPR do organizador): exportar dados e excluir a conta.
+    Route::get('/account', [AccountController::class, 'show'])->name('account.show');
+    Route::get('/account/export', [AccountController::class, 'export'])
+        ->middleware('throttle:6,1')
+        ->name('account.export');
+    Route::delete('/account', [AccountController::class, 'destroy'])
+        ->middleware('throttle:5,1')
+        ->name('account.destroy');
 
     Route::scopeBindings()->group(function () {
         Route::get('/events', [EventController::class, 'index'])->name('events.index');

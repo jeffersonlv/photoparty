@@ -89,3 +89,14 @@
 
     {{-- Molduras: módulo 8. --}}
 </div>
+
+@unless ($event->exists)
+    <div class="mt-6 rounded-xl border border-line p-4">
+        <label class="choice items-start">
+            <input type="checkbox" name="image_authorization" value="1" class="checkbox mt-0.5" required @checked(old('image_authorization'))>
+            <span>{{ __('app.events.image_authorization') }}</span>
+        </label>
+        <p class="mt-2 text-xs text-muted">{{ __('app.events.image_authorization_hint') }}</p>
+        <x-input-error name="image_authorization" />
+    </div>
+@endunless

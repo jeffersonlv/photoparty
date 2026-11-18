@@ -285,14 +285,18 @@ it('lets the guest delete their own pending photo', function () {
     Storage::disk('local')->assertMissing([$photo->original_path, $photo->thumb_path]);
 });
 
-it('does not let the guest delete an approved photo', function () {
+it('lets the guest delete an approved photo: files go, a tombstone takes it off the screen', function () {
     $photo = GuestUpload::storedPhoto($this->event, 'approved', GuestDevice::hashId($this->device));
 
     $this->withCookie(GuestDevice::COOKIE, $this->device)
         ->withCredentials()->deleteJson(route('guest.photos.destroy', ['slug' => $this->event->slug, 'photo' => $photo->uuid, 't' => $this->event->uploadToken()]))
-        ->assertStatus(409);
+        ->assertNoContent();
 
-    expect($photo->fresh())->not->toBeNull();
+    $raw = Photo::withoutGlobalScopes()->findOrFail($photo->id);
+    expect($raw->status)->toBe(Photo::STATUS_DELETED)
+        ->and($raw->original_path)->toBeNull()
+        ->and($raw->guest_name)->toBeNull();
+    Storage::disk('local')->assertMissing([$photo->original_path, $photo->thumb_path]);
 });
 
 it('keeps event state checks on the server for the status column too', function () {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Guest;
 
 use App\Enums\EventStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Account;
 use App\Models\Event;
 use App\Models\Frame;
 use App\Services\GuestDevice;
@@ -84,6 +85,11 @@ class GuestEventController extends Controller
             'askGuestName' => (bool) $event->ask_guest_name,
             // URLs relativas: mesma origem da página (CSP connect-src 'self').
             'uploadUrl' => route('guest.photos.store', ['slug' => $event->slug, 't' => $token], false),
+            // "Minhas fotos": só as deste aparelho, enquanto o evento está ao vivo.
+            'myPhotosUrl' => route('guest.mine.index', ['slug' => $event->slug, 't' => $token], false),
+            // Aviso de privacidade (LGPD/GDPR): o organizador é o controlador; o Photo Party, operador.
+            'consentVersion' => (string) config('photoparty.privacy.consent_version'),
+            'privacy' => $this->privacyNotice($event),
             // Modelos prontos (public/frames) + molduras personalizadas ativas no evento
             // (Event::activeFrames já exclui custom de outra conta ou de plano sem permissão).
             'frames' => $event->activeFrames()
@@ -99,6 +105,24 @@ class GuestEventController extends Controller
                 ])
                 ->values()
                 ->all(),
+        ];
+    }
+
+    /**
+     * Dados do aviso de consentimento: controlador (nome da conta do organizador), prazo de
+     * retenção do plano e links da política e do formulário de solicitação do titular.
+     *
+     * @return array{controller:string, retentionDays:int, policyUrl:string, requestUrl:string}
+     */
+    private function privacyNotice(Event $event): array
+    {
+        $account = Account::query()->find($event->account_id);
+
+        return [
+            'controller' => (string) ($account?->name ?? ''),
+            'retentionDays' => $account?->retentionDays() ?? (int) config('photoparty.default_retention_days'),
+            'policyUrl' => route('legal.privacy', ['lang' => $event->language], false),
+            'requestUrl' => route('privacy.request.create', ['lang' => $event->language], false),
         ];
     }
 

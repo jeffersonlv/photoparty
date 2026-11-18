@@ -28,8 +28,8 @@
             </button>
             <div id="adm-menu" class="adm-menu" x-bind:data-open="expanded">
                 <nav class="adm-nav" aria-label="{{ __('admin.title') }}">
-                    @foreach (['accounts' => 'admin.accounts.*', 'plans' => 'admin.plans.*', 'frames' => 'admin.frames.*', 'home' => 'admin.home.*', 'audit' => 'admin.audit.*'] as $item => $pattern)
-                        <a href="{{ route('admin.'.$item.'.index') }}" @class(['is-active' => request()->routeIs($pattern)]) @if (request()->routeIs($pattern)) aria-current="page" @endif>{{ __('admin.nav.'.$item) }}</a>
+                    @foreach (['accounts' => ['admin.accounts.index', 'admin.accounts.*'], 'plans' => ['admin.plans.index', 'admin.plans.*'], 'frames' => ['admin.frames.index', 'admin.frames.*'], 'home' => ['admin.home.index', 'admin.home.*'], 'privacy' => ['admin.privacy.requests.index', 'admin.privacy.*'], 'audit' => ['admin.audit.index', 'admin.audit.*']] as $item => [$routeName, $pattern])
+                        <a href="{{ route($routeName) }}" @class(['is-active' => request()->routeIs($pattern)]) @if (request()->routeIs($pattern)) aria-current="page" @endif>{{ __('admin.nav.'.$item) }}</a>
                     @endforeach
                 </nav>
                 <div class="adm-top__right">

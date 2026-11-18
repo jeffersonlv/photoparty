@@ -29,6 +29,7 @@ return [
         'texts_unknown' => 'essa moldura não aceita esse texto.',
         'texts_length' => 'cada texto pode ter no máximo :max caracteres.',
         'texts_html' => 'os textos não podem conter HTML nem caracteres especiais de controle.',
-        'not_pending' => 'Só é possível apagar a foto enquanto ela aguarda aprovação.',
+        'consent' => 'Para enviar a foto, marque que você leu e concorda com o aviso de privacidade.',
+        'consent_version' => 'O aviso de privacidade foi atualizado. Recarregue a página, leia e aceite de novo.',
     ],
 ];

@@ -40,6 +40,7 @@ class Photo extends Model
             'guest_texts' => 'array',
             'bytes' => 'integer',
             'approved_at' => 'datetime',
+            'consented_at' => 'datetime',
         ];
     }
 
@@ -54,6 +55,13 @@ class Photo extends Model
     }
 
     public const VARIANTS = ['thumb', 'original', 'preview'];
+
+    /**
+     * Registro mínimo de uma foto aprovada que o próprio convidado excluiu: sem arquivos nem
+     * dados pessoais, existe só para o telão retirá-la (lista "removed") e é apagado pelo
+     * privacy:enforce-retention depois de config('photoparty.privacy.tombstone_hours').
+     */
+    public const STATUS_DELETED = 'deleted';
 
     public function isPending(): bool
     {

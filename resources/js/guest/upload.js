@@ -37,7 +37,7 @@ export function classifyStatus(status) {
 }
 
 /** Monta o multipart do contrato com o backend. */
-export function buildFormData({ photo, thumb, frameKey, filter, orientation, guestName, guestTexts, csrfToken }) {
+export function buildFormData({ photo, thumb, frameKey, filter, orientation, guestName, guestTexts, consentVersion, csrfToken }) {
   const fd = new FormData();
   fd.append('photo', photo, 'photo.jpg');
   fd.append('thumb', thumb, 'thumb.jpg');
@@ -46,6 +46,11 @@ export function buildFormData({ photo, thumb, frameKey, filter, orientation, gue
   fd.append('orientation', orientation);
   fd.append('guest_name', guestName ?? '');
   fd.append('guest_texts', JSON.stringify(guestTexts ?? {}));
+  // consentimento LGPD/GDPR: o servidor recusa (422) sem consent=1 e a versao vigente
+  if (consentVersion) {
+    fd.append('consent', '1');
+    fd.append('consent_version', consentVersion);
+  }
   if (csrfToken) fd.append('_token', csrfToken);
   return fd;
 }

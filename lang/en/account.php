@@ -1,0 +1,30 @@
+<?php
+
+// Organizer "My account": data, export and deletion (LGPD/GDPR).
+return [
+    'nav' => 'My account',
+    'title' => 'My account',
+    'data_title' => 'Account data',
+    'account_name' => 'Account',
+    'plan' => 'Plan',
+    'user' => 'You',
+    'retention' => 'Photo retention',
+    'retention_days' => ':days days after the end of each event',
+    'privacy_title' => 'Privacy',
+    'privacy_roles' => 'For your events, you are the controller of the guests\' photos and Photo Party is the processor. When creating an event, you declare that you are authorised to collect the images (including of minors). Guests can view, download and delete their own photos during the event, and request access or deletion afterwards using the privacy form; we will forward those requests to you.',
+    'privacy_policy' => 'Privacy policy',
+    'terms' => 'Terms of use and data processing agreement',
+    'export_title' => 'Export my data',
+    'export_text' => 'Download a JSON file with the account, users and events data and the photo information (metadata). Photo files are not included in the JSON: download them from each event\'s gallery (paid plans).',
+    'export_button' => 'Download my data (JSON)',
+    'export_note' => 'Export of the account data at Photo Party. Photo files not included (download them from the event gallery).',
+    'delete_title' => 'Delete account',
+    'delete_text' => 'Permanently deletes the account, all users, events, photos, frames and ZIP files. This cannot be undone. Download anything you want to keep first.',
+    'delete_password' => 'Your password',
+    'delete_confirm' => 'I understand that all data and photos will be deleted forever.',
+    'delete_confirm_attribute' => 'confirmation',
+    'delete_confirm_dialog' => 'Delete the account and all data forever?',
+    'delete_button' => 'Delete account and all data',
+    'deleted' => 'Your account and all its data have been deleted.',
+    'owner_only' => 'Only the account owner can export the data or delete the account.',
+];

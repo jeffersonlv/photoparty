@@ -29,7 +29,12 @@ class EventRequest extends FormRequest
 
     public function rules(): array
     {
+        // Criação: declaração obrigatória do organizador (controlador) de que tem autorização
+        // para coletar imagens dos participantes, inclusive de menores (LGPD art. 14 / GDPR art. 8).
+        $creating = ! ($this->route('event') instanceof Event);
+
         return [
+            ...($creating ? ['image_authorization' => ['accepted']] : []),
             'name' => ['required', 'string', 'max:120'],
             'starts_at' => ['required', 'date'],
             'ends_at' => ['required', 'date', 'after:starts_at'],
@@ -46,6 +51,7 @@ class EventRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'image_authorization' => __('app.fields.image_authorization'),
             'name' => __('app.fields.event_name'),
             'starts_at' => __('app.fields.starts_at'),
             'ends_at' => __('app.fields.ends_at'),

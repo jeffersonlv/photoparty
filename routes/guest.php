@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Guest\GuestEventController;
+use App\Http\Controllers\Guest\GuestMyPhotosController;
 use App\Http\Controllers\Guest\GuestPhotoController;
 use App\Http\Controllers\MediaController;
 use App\Http\Middleware\GuardMediaNotFound;
@@ -32,10 +33,27 @@ Route::post('/e/{slug}/photos', [GuestPhotoController::class, 'store'])
     ->middleware('throttle:guest-upload')
     ->name('guest.photos.store');
 
+// "Minhas fotos" (LGPD/GDPR: acesso, portabilidade e eliminação): token do evento + cookie do
+// aparelho; foto de outro aparelho/evento => 404; só enquanto o evento está ao vivo.
 Route::delete('/e/{slug}/photos/{photo}', [GuestPhotoController::class, 'destroy'])
     ->where(['slug' => $slug, 'photo' => $uuid])
-    ->middleware('throttle:guest-upload')
+    ->middleware('throttle:guest-mine')
     ->name('guest.photos.destroy');
+
+Route::get('/e/{slug}/my-photos', [GuestMyPhotosController::class, 'index'])
+    ->where('slug', $slug)
+    ->middleware('throttle:guest-mine')
+    ->name('guest.mine.index');
+
+Route::get('/e/{slug}/my-photos/{photo}/thumb', [GuestMyPhotosController::class, 'thumb'])
+    ->where(['slug' => $slug, 'photo' => $uuid])
+    ->middleware('throttle:guest-mine')
+    ->name('guest.mine.thumb');
+
+Route::get('/e/{slug}/my-photos/{photo}/download', [GuestMyPhotosController::class, 'download'])
+    ->where(['slug' => $slug, 'photo' => $uuid])
+    ->middleware('throttle:guest-mine')
+    ->name('guest.mine.download');
 
 Route::get('/media/{photo}/{variant}', [MediaController::class, 'show'])
     ->where(['photo' => $uuid, 'variant' => 'thumb|original'])

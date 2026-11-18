@@ -27,6 +27,22 @@ class GuestMediaServiceProvider extends ServiceProvider
             return $limits;
         });
 
+        // "Minhas fotos" (lista, miniaturas, download, exclusão): por aparelho e teto por IP.
+        RateLimiter::for('guest-mine', function (Request $request) {
+            $limits = [Limit::perMinute(600)->by('guest-mine-ip|'.$request->ip())];
+
+            if ($device = GuestDevice::limiterKey($request)) {
+                $limits[] = Limit::perMinute(150)->by('guest-mine-device|'.$device);
+            }
+
+            return $limits;
+        });
+
+        // Formulário público de solicitação do titular (LGPD/GDPR).
+        RateLimiter::for('privacy-request', function (Request $request) {
+            return Limit::perHour((int) config('photoparty.privacy.requests_per_hour', 5))->by('privacy-request|'.$request->ip());
+        });
+
         // Página do convidado (GET /e/...): protege contra varredura de slugs/tokens.
         RateLimiter::for('guest-page', function (Request $request) {
             return Limit::perMinute(60)->by('guest-page|'.$request->ip());

@@ -58,6 +58,7 @@ return [
     ],
 
     'fields' => [
+        'image_authorization' => 'declaração de autorização',
         'name' => 'nome',
         'email' => 'e-mail',
         'password' => 'senha',
@@ -118,6 +119,8 @@ return [
     ],
 
     'events' => [
+        'image_authorization' => 'Declaro que tenho autorização para coletar imagens dos participantes, inclusive de menores, nos termos da LGPD/GDPR',
+        'image_authorization_hint' => 'Você é o controlador das fotos dos convidados deste evento. Para menores de idade, obtenha a autorização dos pais ou responsáveis. Os convidados verão um aviso de privacidade com o nome da sua conta.',
         'title' => 'Eventos',
         'new' => 'Novo evento',
         'create_title' => 'Criar evento',

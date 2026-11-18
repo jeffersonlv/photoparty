@@ -1,5 +1,10 @@
 /* Pagina do convidado — mobile-first, sem framework, sem fontes/recursos externos.
-   Fonte da interface: Inter (via @font-face local em /fonts) com fallback de sistema. */
+   Fonte da interface: Inter (via @font-face local em /fonts) com fallback de sistema.
+
+   Tela unica: .gp tem exatamente a altura visivel (100vh -> 100dvh -> --gp-app-h do
+   visualViewport, que acompanha o teclado virtual). Cada passo cabe inteiro, sem rolar a pagina:
+   cabecalho (1 linha) + area central flexivel (min-height: 0) + barra de acoes (.gp-bar).
+   Quando o conteudo de texto nao cabe, so a area interna (.gp-scroll) rola. */
 
 :root {
   --gp-bg: #0f1020;
@@ -12,46 +17,80 @@
   --gp-ok: #3ddc97;
   --gp-danger: #ff6b6b;
   --gp-radius: 18px;
-  --gp-tap: 56px; /* alvo de toque confortavel para o polegar */
+  --gp-tap: 52px; /* alvo de toque confortavel para o polegar (>= 44 px) */
+  --gp-pad: 16px;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
 [x-cloak] { display: none !important; }
 
+html, .gp-body { height: 100%; }
+
 .gp-body {
   margin: 0;
-  min-height: 100dvh;
   background: radial-gradient(120% 80% at 50% -10%, #2a2060 0%, var(--gp-bg) 55%) fixed;
   color: var(--gp-text);
   font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  line-height: 1.45;
+  line-height: 1.4;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
 }
 
 .gp {
+  position: relative;
   max-width: 560px;
   margin: 0 auto;
-  padding: max(12px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  height: 100vh;
+  height: 100dvh;
+  padding: max(8px, env(safe-area-inset-top)) var(--gp-pad) 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  min-height: 100dvh;
+  gap: 10px;
+  overflow: hidden;
 }
+/* altura do visualViewport (teclado virtual aberto => a tela "encolhe" e a barra continua visivel) */
+.gp-has-vvh .gp { height: var(--gp-app-h); }
 
-.gp-header { display: flex; align-items: center; gap: 8px; min-height: 48px; }
-.gp-event { margin: 0; font-weight: 600; color: var(--gp-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* ---------------------------------------------------------------- cabecalho */
+.gp-header { flex: none; display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.gp-event { flex: 1; min-width: 0; margin: 0; font-weight: 700; font-size: 0.95rem; color: var(--gp-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gp-iconbtn { flex: none; appearance: none; border: 0; background: var(--gp-surface); color: var(--gp-text); width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; }
+.gp-linkbtn { flex: none; appearance: none; border: 0; border-radius: 999px; min-height: 44px; padding: 0 14px; background: var(--gp-surface); color: var(--gp-text); font: inherit; font-weight: 700; font-size: 0.9rem; cursor: pointer; white-space: nowrap; }
 
-.gp-step { display: flex; flex-direction: column; gap: 16px; }
-.gp-step--center { align-items: center; text-align: center; margin-block: auto; }
+/* ---------------------------------------------------------------- passos */
+.gp-step { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.gp-step--full { flex: 1 1 auto; }
+.gp-step--panel { flex: none; }
 
-.gp-title { margin: 0; font-size: clamp(1.5rem, 6vw, 2rem); line-height: 1.15; letter-spacing: -0.02em; }
+/* conteudo de texto: so ele rola quando a tela e muito baixa */
+.gp-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 12px; -webkit-overflow-scrolling: touch; }
+.gp-scroll--center { align-items: center; justify-content: center; text-align: center; }
+
+.gp-title { margin: 0; font-size: clamp(1.4rem, 6vw, 1.9rem); line-height: 1.15; letter-spacing: -0.02em; }
+.gp-title--sm { font-size: 1.15rem; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: none; }
 .gp-title:focus { outline: none; }
-.gp-h2 { margin: 0; font-size: 1.05rem; }
-.gp-lead { margin: 0; font-size: 1.1rem; color: var(--gp-muted); }
-.gp-small { margin: 0; font-size: 0.9rem; color: var(--gp-muted); }
+.gp-lead { margin: 0; font-size: 1.05rem; color: var(--gp-muted); }
+.gp-small { margin: 0; font-size: 0.88rem; color: var(--gp-muted); }
+.gp-oneline { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: none; }
+.gp-empty { padding: 24px 0; text-align: center; }
 
-.gp-card { background: var(--gp-surface); border-radius: var(--gp-radius); padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.gp-card { background: var(--gp-surface); border-radius: var(--gp-radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+
+/* barra de acoes inferior: sempre dentro da tela, respeita a area segura */
+.gp-bar {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0 max(12px, env(safe-area-inset-bottom));
+}
+.gp-bar--row { flex-direction: row; flex-wrap: wrap; }
+.gp-bar--row > .gp-btn { flex: 1 1 40%; }
+.gp-bar--row > .gp-btn--shutter { flex-basis: 100%; }
+/* sem camera ao vivo: "tirar com o celular" e "galeria" empilhados (textos longos nao quebram) */
+.gp-bar--stack-sm > .gp-btn { flex-basis: 100%; }
+.gp-welcome-body { margin-block: auto; display: flex; flex-direction: column; gap: 12px; }
 
 /* botoes grandes */
 .gp-btn {
@@ -59,36 +98,46 @@
   border: 0;
   border-radius: 999px;
   min-height: var(--gp-tap);
-  padding: 0 24px;
+  padding: 0 20px;
   width: 100%;
   font: inherit;
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   color: var(--gp-text);
   background: var(--gp-surface-2);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
   transition: transform 0.12s ease, filter 0.12s ease, opacity 0.12s ease;
 }
 .gp-btn:active { transform: scale(0.98); }
 .gp-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
-.gp-btn--primary { background: linear-gradient(135deg, var(--gp-accent), var(--gp-accent-2)); box-shadow: 0 10px 30px -10px rgba(255, 77, 141, 0.7); }
-.gp-btn--shutter { min-height: 68px; font-size: 1.15rem; }
-.gp-iconbtn { appearance: none; border: 0; background: var(--gp-surface); color: var(--gp-text); width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; }
+.gp-btn--primary { background: linear-gradient(135deg, var(--gp-accent), var(--gp-accent-2)); box-shadow: 0 10px 30px -12px rgba(255, 77, 141, 0.7); }
+.gp-btn--shutter { min-height: 60px; font-size: 1.1rem; }
+.gp-btn--sm { min-height: 44px; padding: 0 12px; font-size: 0.92rem; }
+.gp-btn--auto { width: auto; flex: none; }
+.gp-btn--danger { background: rgba(255, 107, 107, 0.16); color: #ffd6d6; }
 
-.gp-actions { display: flex; flex-direction: column; gap: 12px; }
+.gp-links { display: flex; flex-wrap: wrap; gap: 0 16px; }
+.gp-link { color: var(--gp-text); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; min-height: 44px; display: inline-flex; align-items: center; }
 
-/* camera */
-.gp-camera { position: relative; border-radius: var(--gp-radius); overflow: hidden; background: #000; aspect-ratio: 3 / 4; max-height: 62dvh; margin-inline: auto; width: 100%; }
-.gp-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* ---------------------------------------------------------------- camera */
+.gp-camera { position: relative; flex: 1 1 auto; min-height: 0; border-radius: var(--gp-radius); overflow: hidden; background: #000; }
+.gp-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .gp-video.is-mirrored { transform: scaleX(-1); } /* frontal como espelho (a captura tambem sai espelhada) */
 .gp-camera-msg { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: var(--gp-muted); }
+.gp-camera-off { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px; text-align: center; color: var(--gp-muted); background: radial-gradient(circle at 50% 40%, #23244a, #0b0c18 70%); }
 
-/* palco com o canvas */
-.gp-stage { position: relative; display: grid; place-items: center; }
+/* ---------------------------------------------------------------- palco (canvas) */
+.gp-stage { position: relative; flex: 1 1 auto; min-height: 0; }
+.gp-stage__fit { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
 .gp-canvas {
   display: block;
   max-width: 100%;
-  max-height: 60dvh;
+  max-height: 100%;
   width: auto;
   height: auto;
   border-radius: 12px;
@@ -96,37 +145,95 @@
   box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.8);
   touch-action: none;
 }
-.gp-stage-busy { position: absolute; inset: auto 0 12px 0; text-align: center; margin: 0; font-size: 0.9rem; color: var(--gp-muted); }
+.gp-stage-busy { position: absolute; inset: auto 0 8px 0; text-align: center; margin: 0; font-size: 0.9rem; color: var(--gp-muted); }
 
-/* chips (molduras e filtros) */
-.gp-chips { display: flex; flex-wrap: wrap; gap: 10px; }
-.gp-chip { appearance: none; border: 2px solid transparent; background: var(--gp-surface); color: var(--gp-text); font: inherit; font-weight: 600; border-radius: 999px; min-height: 48px; padding: 0 20px; cursor: pointer; }
-.gp-chip.is-on { border-color: var(--gp-accent); background: rgba(255, 77, 141, 0.16); }
+/* ---------------------------------------------------------------- tiras de miniaturas (scroll-x) */
+.gp-strip {
+  flex: none;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  padding: 2px 2px 6px;
+  margin: 0 -2px;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.gp-strip::-webkit-scrollbar { display: none; }
+.gp-tile {
+  flex: none;
+  appearance: none;
+  width: 78px;
+  padding: 4px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: var(--gp-surface);
+  color: var(--gp-text);
+  font: inherit;
+  cursor: pointer;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: stretch;
+}
+.gp-tile.is-on { border-color: var(--gp-accent); background: rgba(255, 77, 141, 0.16); }
+.gp-tile__img { display: block; width: 100%; height: 72px; object-fit: contain; border-radius: 8px; background: #000; }
+.gp-tile__label { font-size: 0.75rem; font-weight: 600; line-height: 1.2; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* formularios */
-.gp-field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
+/* ---------------------------------------------------------------- ajuste */
+.gp-adjust { flex: none; display: flex; align-items: center; gap: 12px; }
+.gp-range { flex: 1; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.9rem; }
+.gp-range input { flex: 1; min-width: 0; height: 44px; accent-color: var(--gp-accent); }
+
+/* ---------------------------------------------------------------- formularios */
+.gp-fields { flex: 0 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.gp-field { display: flex; flex-direction: column; gap: 4px; font-weight: 600; font-size: 0.92rem; }
 .gp-field small { font-weight: 400; color: var(--gp-muted); }
-.gp-field input[type='text'] { font: inherit; font-size: 1rem; min-height: var(--gp-tap); padding: 0 16px; border-radius: 14px; border: 2px solid var(--gp-surface-2); background: var(--gp-surface); color: var(--gp-text); }
+.gp-field input[type='text'] { font: inherit; font-size: 1rem; min-height: 48px; padding: 0 14px; border-radius: 14px; border: 2px solid var(--gp-surface-2); background: var(--gp-surface); color: var(--gp-text); }
 .gp-field input[type='text']:focus { border-color: var(--gp-accent-2); outline: none; }
-.gp-range { display: flex; flex-direction: column; gap: 8px; font-weight: 600; }
-.gp-range input { width: 100%; height: 40px; accent-color: var(--gp-accent); }
-.gp-check { display: flex; align-items: center; gap: 12px; font-weight: 600; min-height: 48px; cursor: pointer; }
+.gp-check { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 0.95rem; min-height: 44px; cursor: pointer; }
 .gp-check input { width: 26px; height: 26px; accent-color: var(--gp-accent); flex: none; }
 
-/* progresso e alertas */
+/* ---------------------------------------------------------------- progresso e alertas */
+.gp-progress { flex: none; }
 .gp-progress progress { width: 100%; height: 12px; border-radius: 999px; overflow: hidden; accent-color: var(--gp-accent); }
-.gp-alert { margin: 0; padding: 14px 16px; border-radius: 14px; background: rgba(255, 107, 107, 0.14); border: 1px solid rgba(255, 107, 107, 0.5); color: #ffd6d6; }
-.gp-check-icon { color: var(--gp-ok); }
+.gp-alert { flex: none; margin: 0; padding: 12px 14px; border-radius: 14px; background: rgba(255, 107, 107, 0.14); border: 1px solid rgba(255, 107, 107, 0.5); color: #ffd6d6; font-size: 0.92rem; }
+.gp-alert--sm { padding: 8px 12px; font-size: 0.85rem; }
+.gp-check-icon { color: var(--gp-ok); flex: none; }
 .gp-noscript { margin: 0; padding: 16px; background: var(--gp-danger); color: #111; text-align: center; }
 
-.gp-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-.gp-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+/* ---------------------------------------------------------------- minhas fotos */
+.gp-mine { list-style: none; margin: 0; padding: 0 0 4px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.gp-mine__item { background: var(--gp-surface); border-radius: 14px; padding: 6px; display: flex; flex-direction: column; gap: 6px; }
+.gp-mine__frame { position: relative; }
+.gp-mine__img { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: contain; border-radius: 10px; background: #000; }
+.gp-mine__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.gp-mine__actions .gp-btn { padding: 0 6px; font-size: 0.85rem; }
+.gp-badge { display: block; margin-top: 6px; border-radius: 8px; padding: 3px 8px; font-size: 0.75rem; font-weight: 700; line-height: 1.25; text-align: center; background: var(--gp-surface-2); color: var(--gp-muted); }
+.gp-badge--approved { background: rgba(61, 220, 151, 0.18); color: var(--gp-ok); }
+.gp-badge--rejected { background: rgba(255, 107, 107, 0.16); color: #ffb3b3; }
+
+.gp-hidden { position: absolute; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.gp-sr { position: absolute; top: 0; left: 0; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 :focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 
+/* telas baixas: compacta espacos e textos */
+@media (max-height: 680px) {
+  :root { --gp-tap: 48px; }
+  .gp { gap: 8px; }
+  .gp-title { font-size: 1.35rem; }
+  .gp-title--sm { font-size: 1.05rem; }
+  .gp-lead { font-size: 0.98rem; }
+  .gp-tile__img { height: 60px; }
+  .gp-tile { width: 68px; }
+}
+
 @media (min-width: 700px) {
-  .gp { max-width: 640px; padding-top: 24px; }
-  .gp-actions { flex-direction: row; }
+  .gp { max-width: 640px; }
+  .gp-mine { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (prefers-reduced-motion: reduce) {

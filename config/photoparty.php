@@ -63,6 +63,43 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Privacidade (LGPD / GDPR)
+    |--------------------------------------------------------------------------
+    |
+    | consent_version: versão do texto de consentimento do convidado. O servidor recusa
+    | (422) envio sem consent=1 e com versão diferente desta; a versão aceita fica em
+    | photos.consent_version. legal_version: versão de /privacidade e /termos.
+    | Mudou o texto? Mude a data (os convidados verão o aviso de novo).
+    |
+    | privacy_contact_email: canal do titular. Vazio => as páginas mostram "[a preencher]"
+    | e o admin vê um aviso. Pode ser sobrescrito em /admin/privacy/settings.
+    |
+    | legal_reviewed: false => as páginas legais mostram a nota discreta "modelo pendente
+    | de revisão jurídica" para todos (e um aviso em destaque para o admin). Depois da
+    | revisão por advogado, defina PHOTOPARTY_LEGAL_REVIEWED=true.
+    |
+    */
+
+    'privacy_contact_email' => (string) env('PHOTOPARTY_PRIVACY_CONTACT_EMAIL', ''),
+
+    'privacy' => [
+        'consent_version' => '2026-11-18',
+        'legal_version' => '2026-11-18',
+        'legal_reviewed' => (bool) env('PHOTOPARTY_LEGAL_REVIEWED', false),
+        // Cookie anônimo do aparelho do convidado (pp_device).
+        'device_cookie_days' => 30,
+        // audit_logs: IP apagado depois deste prazo.
+        'audit_ip_retention_days' => 90,
+        // Registro "excluída pelo convidado" (só para o telão retirar a foto) vive este tempo.
+        'tombstone_hours' => 24,
+        // Prazos de resposta exibidos ao titular e no admin.
+        'response_days' => ['lgpd' => 15, 'gdpr' => 30],
+        // Formulário público de solicitação: envios por hora por IP.
+        'requests_per_hour' => 5,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Rate limits
     |--------------------------------------------------------------------------
     */

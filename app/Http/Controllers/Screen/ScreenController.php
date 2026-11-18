@@ -116,12 +116,12 @@ class ScreenController extends Controller
                     });
             });
 
-            // Rejeitadas/retiradas desde o cursor anterior. updated_at tem precisão de segundo e
+            // Rejeitadas/retiradas (ou excluídas pelo próprio convidado: status deleted) desde o cursor anterior. updated_at tem precisão de segundo e
             // a comparação é inclusiva (>=) no segundo do cursor, então nada escapa entre duas
             // chamadas; o telão ignora uuids que não conhece.
             $removed = Photo::withoutGlobalScopes()
                 ->where('event_id', $event->id)
-                ->where('status', 'rejected')
+                ->whereIn('status', ['rejected', Photo::STATUS_DELETED])
                 ->where('updated_at', '>=', Carbon::createFromTimestamp(intdiv($after['micros'], 1_000_000), config('app.timezone'))->format('Y-m-d H:i:s'))
                 ->orderBy('id')
                 ->limit(self::REMOVED_LIMIT)

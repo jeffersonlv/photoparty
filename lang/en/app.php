@@ -58,6 +58,7 @@ return [
     ],
 
     'fields' => [
+        'image_authorization' => 'authorisation declaration',
         'name' => 'name',
         'email' => 'email',
         'password' => 'password',
@@ -118,6 +119,8 @@ return [
     ],
 
     'events' => [
+        'image_authorization' => 'I declare that I am authorised to collect images of the participants, including minors, under the LGPD/GDPR',
+        'image_authorization_hint' => 'You are the controller of the guests\' photos at this event. For minors, obtain the authorisation of their parents or guardians. Guests will see a privacy notice with your account name.',
         'title' => 'Events',
         'new' => 'New event',
         'create_title' => 'Create event',

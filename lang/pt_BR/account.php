@@ -1,0 +1,30 @@
+<?php
+
+// "Minha conta" do organizador: dados, exportação e exclusão (LGPD/GDPR).
+return [
+    'nav' => 'Minha conta',
+    'title' => 'Minha conta',
+    'data_title' => 'Dados da conta',
+    'account_name' => 'Conta',
+    'plan' => 'Plano',
+    'user' => 'Você',
+    'retention' => 'Retenção das fotos',
+    'retention_days' => ':days dias depois do fim de cada evento',
+    'privacy_title' => 'Privacidade',
+    'privacy_roles' => 'Nos seus eventos, você é o controlador das fotos dos convidados e o Photo Party é o operador. Ao criar um evento, você declara ter autorização para coletar as imagens (inclusive de menores). Os convidados podem ver, baixar e excluir as próprias fotos durante o evento, e pedir acesso ou exclusão depois pelo formulário de privacidade; encaminharemos esses pedidos a você.',
+    'privacy_policy' => 'Política de privacidade',
+    'terms' => 'Termos de uso e acordo de tratamento de dados',
+    'export_title' => 'Exportar meus dados',
+    'export_text' => 'Baixe um arquivo JSON com os dados da conta, dos usuários, dos eventos e as informações (metadados) das fotos. Os arquivos das fotos não vão no JSON: baixe-os pela galeria de cada evento (planos pagos).',
+    'export_button' => 'Baixar meus dados (JSON)',
+    'export_note' => 'Exportação dos dados da conta no Photo Party. Arquivos de fotos não incluídos (baixe pela galeria do evento).',
+    'delete_title' => 'Excluir conta',
+    'delete_text' => 'Apaga definitivamente a conta, todos os usuários, eventos, fotos, molduras e arquivos ZIP. Não é possível desfazer. Baixe antes o que quiser guardar.',
+    'delete_password' => 'Sua senha',
+    'delete_confirm' => 'Entendo que todos os dados e fotos serão apagados para sempre.',
+    'delete_confirm_attribute' => 'confirmação',
+    'delete_confirm_dialog' => 'Excluir a conta e todos os dados para sempre?',
+    'delete_button' => 'Excluir conta e todos os dados',
+    'deleted' => 'Sua conta e todos os dados foram excluídos.',
+    'owner_only' => 'Só o responsável (owner) pela conta pode exportar os dados ou excluir a conta.',
+];

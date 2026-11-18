@@ -63,6 +63,8 @@ class Event extends Model
             'published_at' => 'datetime',
             'closed_at' => 'datetime',
             'expires_at' => 'datetime',
+            'declared_at' => 'datetime',
+            'purged_at' => 'datetime',
             'status' => EventStatus::class,
             'is_trial' => 'boolean',
             'ask_guest_name' => 'boolean',

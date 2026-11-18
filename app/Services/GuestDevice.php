@@ -10,14 +10,14 @@ use Illuminate\Support\Str;
  * Identificação anônima do aparelho do convidado.
  *
  * Cookie "pp_device" com valor aleatório (criptografado pelo EncryptCookies do grupo web),
- * httponly, secure, samesite=lax, validade de 1 ano. No banco só fica o HMAC-SHA256 do
- * valor (photos.device_hash): não identifica a pessoa e não permite reconstruir o cookie.
+ * httponly, secure, samesite=lax, validade de config('photoparty.privacy.device_cookie_days')
+ * (30 dias: cobre o evento e o período em que o convidado pode ver/baixar/excluir as próprias
+ * fotos; minimização LGPD/GDPR). No banco só fica o HMAC-SHA256 do valor (photos.device_hash):
+ * não identifica a pessoa e não permite reconstruir o cookie.
  */
 class GuestDevice
 {
     public const COOKIE = 'pp_device';
-
-    private const MINUTES = 60 * 24 * 365;
 
     /**
      * Garante o cookie do aparelho e devolve o hash. Se o aparelho ainda não tem
@@ -37,7 +37,7 @@ class GuestDevice
             Cookie::queue(Cookie::make(
                 self::COOKIE,
                 $id,
-                self::MINUTES,
+                self::lifetimeMinutes(),
                 '/',
                 null,
                 $this->secure($request),
@@ -50,6 +50,11 @@ class GuestDevice
         }
 
         return $id;
+    }
+
+    public static function lifetimeMinutes(): int
+    {
+        return 60 * 24 * max(1, (int) config('photoparty.privacy.device_cookie_days', 30));
     }
 
     /**

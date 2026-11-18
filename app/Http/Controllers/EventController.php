@@ -75,7 +75,9 @@ class EventController extends Controller
             return redirect()->route('events.index')->with('error', $error);
         }
 
-        $event = new Event($request->validated());
+        $event = new Event($request->safe()->except('image_authorization'));
+        // Declaração LGPD/GDPR aceita (validada como "accepted" no EventRequest).
+        $event->declared_at = now();
         $event->is_trial = $account->isOnTrial();
         $event->enabled_filters = $request->validated('enabled_filters', []);
         $event->screen_settings = config('photoparty.screen_defaults');
@@ -110,7 +112,7 @@ class EventController extends Controller
     {
         $this->authorize('update', $event);
 
-        $event->fill($request->validated());
+        $event->fill($request->safe()->except('image_authorization'));
         $event->enabled_filters = $request->validated('enabled_filters', []);
         $this->scheduler->syncAfterUpdate($event->account, $event);
         $event->save();

@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\FrameController;
 use App\Http\Controllers\Admin\HomeItemController;
 use App\Http\Controllers\Admin\HomeSectionController;
 use App\Http\Controllers\Admin\PlanController;
+use App\Http\Controllers\Admin\PrivacyController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use Illuminate\Support\Facades\Route;
 
@@ -40,6 +41,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', 'verified']
 
     // Auditoria
     Route::get('/audit', [AuditLogController::class, 'index'])->name('audit.index');
+
+    // Privacidade (LGPD/GDPR): solicitações de titulares e dados do operador/DPO
+    Route::get('/privacy', [PrivacyController::class, 'index'])->name('privacy.requests.index');
+    Route::put('/privacy/requests/{privacyRequest}', [PrivacyController::class, 'update'])->name('privacy.requests.update');
+    Route::get('/privacy/settings', [PrivacyController::class, 'editSettings'])->name('privacy.settings.edit');
+    Route::put('/privacy/settings', [PrivacyController::class, 'updateSettings'])->name('privacy.settings.update');
 
     // Página inicial
     Route::prefix('home')->name('home.')->group(function () {

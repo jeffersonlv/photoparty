@@ -29,6 +29,7 @@ return [
         'texts_unknown' => 'this frame does not accept that text.',
         'texts_length' => 'each text can have at most :max characters.',
         'texts_html' => 'texts cannot contain HTML or control characters.',
-        'not_pending' => 'You can only delete a photo while it is awaiting approval.',
+        'consent' => 'To send the photo, confirm that you have read and agree to the privacy notice.',
+        'consent_version' => 'The privacy notice has changed. Reload the page, read it and accept it again.',
     ],
 ];

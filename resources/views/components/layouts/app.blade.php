@@ -5,6 +5,7 @@
         ['route' => 'dashboard', 'label' => __('app.nav.dashboard'), 'active' => request()->routeIs('dashboard')],
         ['route' => 'events.index', 'label' => __('app.nav.events'), 'active' => request()->routeIs('events.*')],
         ...($user->account_id ? [['route' => 'frames.index', 'label' => __('frames.nav'), 'active' => request()->routeIs('frames.*')]] : []),
+        ...($user->account_id ? [['route' => 'account.show', 'label' => __('account.nav'), 'active' => request()->routeIs('account.*')]] : []),
     ];
     if ($user->isAdmin()) {
         $links[] = ['route' => 'admin.accounts.index', 'label' => __('app.nav.admin'), 'active' => false];

@@ -61,7 +61,7 @@ Admin em `/admin` (middleware `auth`, `admin`, `verified`; qualquer usuário que
 - **Molduras do sistema:** ativar/desativar e ordenar (upload de novos modelos fica para depois).
 - **Auditoria:** `audit_logs` paginado com filtros; toda ação do admin passa por `App\Services\AuditLogger`.
 - **Página inicial (`/admin/home`):** seções com toggle e ordem, conteúdo por idioma (pt_BR/en) com campos definidos em `config/home_sections.php`, itens repetíveis, botão Visualizar (sem salvar), SEO e contato. O conteúdo é texto puro, sempre escapado.
-- **Home pública (`/`):** só seções ativas, em cache de arquivo por idioma (limpo ao salvar no admin). Rodapé com Termos (`/termos`) e Privacidade (`/privacidade`) sempre presente; os textos são provisórios e precisam de revisão jurídica.
+- **Home pública (`/`):** só seções ativas, em cache de arquivo por idioma (limpo ao salvar no admin). Rodapé com Termos (`/termos`) e Privacidade (`/privacidade`) sempre presente; texto-modelo LGPD/GDPR completo (ver "Privacidade (LGPD/GDPR)"), ainda pendente de revisão jurídica.
 - **Conteúdo inicial:** `php artisan db:seed --class=HomeSeeder` (idempotente, seguro em produção; não sobrescreve edições).
 - **Demonstração ao vivo** do hero: por enquanto um bloco estático (`#live-demo`).
 
@@ -93,7 +93,7 @@ No hPanel, um cron a cada minuto (com o binário do PHP 8.3):
 * * * * * cd /caminho/do/projeto && /opt/alt/php83/usr/bin/php artisan schedule:run >> /dev/null 2>&1
 ```
 
-O agendamento (`routes/console.php`) roda, nesta ordem: `accounts:expire-trials`, `events:refresh-statuses` e `queue:work --stop-when-empty --max-time=50 --tries=3`.
+O agendamento (`routes/console.php`) roda: `accounts:expire-trials`, `events:refresh-statuses` (a cada minuto), `exports:purge-expired` (de hora em hora), `privacy:enforce-retention` (diário, 03:17) e, por último, `queue:work --stop-when-empty --max-time=50 --tries=3`.
 
 ## O que está implementado
 
@@ -117,9 +117,9 @@ O agendamento (`routes/console.php`) roda, nesta ordem: `accounts:expire-trials`
 **Convidado e mídia (módulos 3-4)** — rotas em `routes/guest.php`
 
 - `FrameSeeder` registra os 4 modelos de `public/frames/<key>/config.json` como molduras do sistema (`account_id` nulo, `type = template`); idempotente e chamado pelo `DatabaseSeeder` (em produção: `php artisan db:seed --class=FrameSeeder --force`). Todo evento novo ativa esses modelos (`Event::attachDefaultFrames()`, hook `created`).
-- `GET /e/{slug}?t=…` (`guest.show`): evento por slug + hash do token (token errado, de outro evento ou ausente → 404). `draft`/`expired` → 404; `scheduled` → página "começa em…"; `ended` → "Este evento já terminou" (HTTP 410); `live` → app do convidado (`guest/show.blade.php`) no idioma do evento. Cria o cookie anônimo do aparelho `pp_device` (aleatório, criptografado, httponly, secure, samesite=lax, 1 ano); no banco fica só o HMAC (`photos.device_hash`).
+- `GET /e/{slug}?t=…` (`guest.show`): evento por slug + hash do token (token errado, de outro evento ou ausente → 404). `draft`/`expired` → 404; `scheduled` → página "começa em…"; `ended` → "Este evento já terminou" (HTTP 410); `live` → app do convidado (`guest/show.blade.php`) no idioma do evento. Cria o cookie anônimo do aparelho `pp_device` (aleatório, criptografado, httponly, secure, samesite=lax, 30 dias); no banco fica só o HMAC (`photos.device_hash`).
 - `POST /e/{slug}/photos?t=…` (`guest.photos.store`): 201 `{uuid, status}`. Servidor decide tudo: evento fora do ar → 410; limite de fotos do evento (20 no teste, plano nos demais) ou `max_photos_per_guest` por aparelho → 429; rate limit `guest-upload` (6/min por aparelho, 60/min por IP) → 429; validação (`finfo` + `getimagesize`, JPEG/PNG/WebP, foto ≤ 3 MB e 1080×1350 ou 1920×1080 conforme a orientação, miniatura ≤ 300 KB e ≤ 400 px no lado maior, `frame_key` vazio ou ativo no evento, textos do convidado só nos campos `filledBy: guest` da moldura/orientação, ≤ `maxChars`, sem HTML) → 422. Foto e miniatura são reencodadas com GD para JPEG (sem EXIF/GPS nem conteúdo embutido) e gravadas em `storage/app/private/tenants/{account_uuid}/events/{event_uuid}/{original|thumb}/{photo_uuid}.jpg` dentro da transação do registro; em falha os arquivos são apagados. Disco cheio/erro de escrita → 507. Status `pending` (moderação prévia) ou `approved` + `approved_at` (posterior).
-- `DELETE /e/{slug}/photos/{photo}?t=…` (`guest.photos.destroy`): o convidado apaga a própria foto pendente (confere `device_hash`); de outro aparelho → 404, já aprovada → 409.
+- `DELETE /e/{slug}/photos/{photo}?t=…` (`guest.photos.destroy`): o convidado apaga a própria foto em qualquer status enquanto o evento está ao vivo (confere `device_hash`); de outro aparelho → 404. Ver "Privacidade (LGPD/GDPR)".
 - `GET /media/{photo}/{variant}` (`media.show`, `variant` = `thumb|original`): login + `PhotoPolicy` (mesma conta, owner ou moderator; admin permitido e auditado em `audit_logs`; outra conta → 404). `GET /media/signed/{photo}/{variant}` (`media.signed`): URL assinada **relativa** de 10 min para o telão, só fotos aprovadas de evento não expirado — gere com `Photo::signedMediaUrl('thumb')`; no painel use `Photo::mediaUrl('thumb')`. Conta `trial_ended` só recebe `thumb` (original → 404). Headers `Content-Type: image/jpeg`, `Cache-Control: private, max-age=600`, `X-Content-Type-Options: nosniff`.
 - Rajadas de 404/403 em `/media`: middleware `GuardMediaNotFound` (20 por minuto por IP → log no canal `security`, `storage/logs/security-*.log`, e 429 até a janela acabar) + throttle nomeado `media`.
 
@@ -160,6 +160,46 @@ Módulo 8. Rotas em `routes/frames.php`; código em `App\Http\Controllers\Frames
 - **Exclusão:** apaga a pasta da moldura e os vínculos com eventos; fotos já enviadas ficam com `frame_id` nulo.
 - **Auditoria:** `frame.uploaded`, `frame.events_updated`, `frame.deleted`.
 - **Admin:** a tela de molduras do admin continua só com os modelos do sistema (há teste garantindo que ela não mexe em moldura de organizador). Desativar uma moldura custom de qualquer conta pelo admin fica pendente; hoje dá para fazer `frames.is_active = false` direto no banco (o convidado deixa de vê-la e a tela do organizador mostra "Desativada pela administração").
+
+## Privacidade (LGPD/GDPR)
+
+Papéis: o **organizador** (conta) é o **controlador** das fotos e dados dos convidados dos eventos dele; o Photo Party é o **operador/processador** desses dados e o **controlador** dos dados das contas. Base legal do convidado: consentimento (LGPD art. 7º I / GDPR art. 6(1)(a)). Imagem é tratada como dado pessoal comum (sem reconhecimento facial, biometria ou perfilamento).
+
+**Convidado**
+
+- **Consentimento registrado:** a página do convidado mostra um resumo (controlador = nome da conta do organizador, finalidade, retenção do plano, links "Ler política completa" e "Pedir acesso ou exclusão") e um checkbox obrigatório. O servidor recusa (422) envio sem `consent=1` e `consent_version` igual a `config('photoparty.privacy.consent_version')`; a foto grava `consent_version` e `consented_at`. Mudou o texto? Troque a versão: o aceite lembrado no aparelho (`localStorage`) usa a versão na chave, então todos aceitam de novo.
+- **"Minhas fotos"** (acesso, portabilidade e eliminação), só enquanto o evento está `live` (decisão do produto): `GET /e/{slug}/my-photos?t=…` (lista JSON), `…/my-photos/{photo}/thumb`, `…/my-photos/{photo}/download` (original, `Content-Disposition: attachment`) e `DELETE /e/{slug}/photos/{photo}`. Autorização = token de upload do evento **e** `device_hash` do cookie; foto de outro aparelho/evento/conta → 404; fora de `live` → 404. Rate limit `guest-mine` (150/min por aparelho, 600/min por IP).
+- **Regra de plano (decisão):** a foto é do próprio convidado, então o download dele é sempre o **original, sem faixa de demonstração**, mesmo com a conta do organizador em teste. A regra de prévia/sem download (`PhotoVariants`) continua valendo só para o painel do organizador.
+- **Excluir = revogar o consentimento**, em qualquer status enquanto o evento está ativo: apaga original, miniatura e prévia. Foto pendente/rejeitada perde o registro; foto aprovada vira um registro mínimo `status = deleted` (sem arquivos, nome, textos nem moldura) só para o telão retirá-la (`removed` do polling); o registro some em 24 h. Foto excluída não ocupa vaga do evento, mas conta no limite por aparelho.
+- **Depois do evento:** formulário público `/privacidade/solicitacao` (tipo, link do evento, e-mail, detalhes, declaração; honeypot `website`; 5/hora por IP; sem guardar IP). Cria `privacy_requests` (status aberto/concluído). O servidor tenta ligar ao evento pelo slug do link (para encaminhar ao organizador). E-mail: só um aviso **sem dados pessoais** ao contato de privacidade, e só se houver SMTP (`MAIL_MAILER` diferente de `log`/`array`) e contato preenchido; senão fica só no admin.
+- **Cookie do aparelho `pp_device`:** 30 dias (antes 1 ano), httponly, secure (fora de local/testes), samesite=lax. Só cookies estritamente necessários (sessão, `XSRF-TOKEN`, `remember_web_*` se marcar "lembrar", `pp_device`) e nenhum script/fonte/CDN de terceiros (há teste que varre views/JS/CSS): por isso **sem banner de cookies**; a política tem a seção "Cookies" com nome, finalidade e duração.
+
+**Organizador**
+
+- Criar evento exige o checkbox "Declaro que tenho autorização para coletar imagens dos participantes, inclusive de menores, nos termos da LGPD/GDPR" (`events.declared_at`).
+- **Minha conta** (`/account`, link no menu): dados, retenção, exportar JSON (`/account/export`: conta, usuários, eventos e metadados das fotos; sem arquivos, `device_hash`, caminhos ou tokens) e excluir a conta com senha + confirmação (apaga banco e `storage/.../tenants/{uuid}`; sessões e tokens de senha; anonimiza meta/IP dos logs antigos da conta; grava `account.deleted` sem dados pessoais). Exportar/excluir: só `owner` (moderador → 403).
+
+**Retenção e minimização** — `php artisan privacy:enforce-retention` (diário, 03:17; `--dry-run` disponível):
+
+- Evento com prazo vencido (`expires_at` = fim + `plans.retention_days`; teste de conta que não virou `active`: 7 dias após `trial_ends_at`): apaga fotos, miniaturas, prévias, ZIPs e a pasta do evento; apaga os registros das fotos (nome, textos, `device_hash`); exportações viram `expired`; o evento fica só com o registro mínimo (`purged_at`, sem `welcome_message`).
+- Apaga registros `deleted` com mais de 24 h, pastas órfãs (tenant sem conta, evento sem registro, moldura sem registro) e o **IP de `audit_logs` com mais de 90 dias**.
+- Logs nunca levam nome/e-mail de convidado nem tokens.
+
+**Textos legais** — `/privacidade` e `/termos` (pt_BR/en em `lang/*/legal.php`, `?lang=` força o idioma), versão em `config('photoparty.privacy.legal_version')`. Cobrem: operador, papéis, dados, finalidades e bases legais, compartilhamento (nenhum terceiro; Hostinger como suboperador, região configurável), transferência internacional (cláusula padrão ou texto configurável), retenção, direitos (LGPD art. 18 / GDPR arts. 15-22), como exercer e prazos (15 dias LGPD / 30 dias GDPR), encarregado/DPO, ANPD e autoridade da UE (DPC na Irlanda), segurança, menores, incidentes, cookies e alterações. Os Termos incluem a cláusula de tratamento de dados (DPA simplificado: instruções, sigilo, segurança, suboperadores, eliminação ao fim, assistência com direitos e incidentes). Nada é inventado: dados vazios aparecem como "[a preencher]".
+- **Aviso de revisão jurídica (decisão):** o admin logado vê em destaque "Este texto é um modelo e deve ser revisado por um advogado antes do uso comercial." e a lista de campos vazios; o público vê só uma nota discreta no fim ("Texto-modelo pendente de revisão jurídica"), que some com `PHOTOPARTY_LEGAL_REVIEWED=true`.
+
+**Admin** — menu **Privacidade** (`/admin/privacy`): solicitações com prazos LGPD/GDPR (vencidas destacadas), marcar concluída/reabrir com anotação; **Configurações de privacidade** (`/admin/privacy/settings`, gravadas em `site_settings`): razão social, CNPJ/registro, endereço, e-mail de contato (vazio usa `PHOTOPARTY_PRIVACY_CONTACT_EMAIL`), encarregado/DPO e e-mail, país/região dos servidores, cláusula de transferência.
+
+**Página do convidado em tela única (celular):** cada passo cabe na tela sem rolar a página (altura `100vh` → `100dvh` → `visualViewport` em `--gp-app-h`, `interactive-widget=resizes-content`): cabeçalho de 1 linha, área central flexível (câmera/prévia em `contain`) e barra de ações inferior com área segura. Moldura e filtro em tiras horizontais de miniaturas reais (foto do convidado composta). Textos longos e "Minhas fotos" rolam só por dentro. Verificado com Chromium headless em 360×640, 390×844 e 412×915, foto retrato e paisagem (`scrollHeight <= innerHeight` em todos os passos, inclusive com a altura reduzida simulando o teclado).
+
+### Checklist do dono antes do uso comercial
+
+- [ ] Revisão de `/privacidade` e `/termos` (pt_BR e en) por **advogado**; definir lei aplicável e foro nos Termos (hoje "[a definir]"); depois `PHOTOPARTY_LEGAL_REVIEWED=true`.
+- [ ] Preencher em `/admin/privacy/settings`: **razão social**, **CNPJ/registro**, **endereço**, **e-mail de contato de privacidade** (ou `PHOTOPARTY_PRIVACY_CONTACT_EMAIL`), **encarregado/DPO** (nome e e-mail), **país/região dos servidores** contratados na Hostinger e, se necessário, a cláusula de transferência internacional.
+- [ ] Confirmar com o advogado os prazos de retenção por plano (`plans.retention_days`) e o texto do aviso do convidado (ao mudar, trocar `photoparty.privacy.consent_version`).
+- [ ] Configurar SMTP do Hostinger se quiser o aviso por e-mail de novas solicitações (senão, acompanhar em `/admin/privacy`).
+- [ ] Definir o processo de atendimento: encaminhar ao organizador, confirmar identidade sem pedir documentos desnecessários, responder em até 15 dias (LGPD) / 30 dias (GDPR).
+- [ ] Manter o cron do `schedule:run` ativo (a retenção depende dele).
 
 ## Roteiro de teste manual do ciclo completo
 

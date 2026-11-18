@@ -21,6 +21,9 @@ Schedule::command('events:refresh-statuses')->everyMinute()->withoutOverlapping(
 // ZIPs de exportação expiram em 7 dias.
 Schedule::command('exports:purge-expired')->hourly()->withoutOverlapping();
 
+// LGPD/GDPR: retenção (fotos/ZIPs de eventos vencidos, órfãos, IPs de auditoria > 90 dias).
+Schedule::command('privacy:enforce-retention')->dailyAt('03:17')->withoutOverlapping();
+
 // Fila (driver database) processada pelo cron; sem processo longo no servidor compartilhado.
 Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3')
     ->everyMinute()

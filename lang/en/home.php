@@ -32,25 +32,4 @@ return [
         'language' => 'Language',
     ],
 
-    'legal' => [
-        'draft_notice' => 'Placeholder text: this document is a template and needs legal review before publication.',
-        'updated_placeholder' => 'Draft version',
-        'back' => 'Back to the home page',
-        'terms' => [
-            'title' => 'Terms of use',
-            'sections' => [
-                ['heading' => 'Service', 'body' => 'Photo Party lets event organizers receive photos sent by guests and show them on a big screen. [Final text to be written.]'],
-                ['heading' => 'Organizer responsibilities', 'body' => 'The organizer is responsible for informing guests about how photos are used and for moderating the content shown. [Final text to be written.]'],
-                ['heading' => 'Plans, payment and cancellation', 'body' => 'Plan, billing and cancellation terms will be described here. [Final text to be written.]'],
-            ],
-        ],
-        'privacy' => [
-            'title' => 'Privacy policy',
-            'sections' => [
-                ['heading' => 'Data we collect', 'body' => 'We collect the organizer\'s sign-up data and the photos sent by guests, kept isolated per organizer and per event. [Final text to be written.]'],
-                ['heading' => 'Use and retention', 'body' => 'Photos are used only for the event and deleted according to the plan\'s retention period. We use no third-party trackers. [Final text to be written.]'],
-                ['heading' => 'Your rights', 'body' => 'Information on how to exercise access and deletion rights will be described here. [Final text to be written.]'],
-            ],
-        ],
-    ],
 ];

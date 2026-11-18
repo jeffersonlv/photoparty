@@ -60,7 +60,9 @@ it('renders the guest app with the event payload for a live event', function () 
     $cookie = collect($response->headers->getCookies())->firstWhere(fn ($c) => $c->getName() === GuestDevice::COOKIE);
     expect($cookie->isHttpOnly())->toBeTrue()
         ->and($cookie->getSameSite())->toBe('lax')
-        ->and($cookie->getExpiresTime())->toBeGreaterThan(now()->addDays(360)->timestamp);
+        // LGPD/GDPR: 30 dias (não mais 1 ano).
+        ->and($cookie->getExpiresTime())->toBeGreaterThan(now()->addDays(29)->timestamp)
+        ->and($cookie->getExpiresTime())->toBeLessThanOrEqual(now()->addDays(30)->addMinute()->timestamp);
 
     // Nome do evento escapado; nenhum token de telão vaza na página.
     $response->assertDontSee('Casamento Ana & Leo</', false)

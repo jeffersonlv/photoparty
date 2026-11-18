@@ -37,5 +37,6 @@ function eventPayload(array $overrides = []): array
         'max_photos_per_guest' => 5,
         'enabled_filters' => ['none', 'bw'],
         'language' => 'pt_BR',
+        'image_authorization' => '1',
     ], $overrides);
 }

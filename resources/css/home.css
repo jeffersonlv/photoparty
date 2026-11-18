@@ -166,6 +166,15 @@ html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 .hm-legal h2 { margin: 28px 0 8px; font-family: Inter, sans-serif; font-size: 1.15rem; font-weight: 700; letter-spacing: 0; }
 .hm-legal p { margin-bottom: 12px; color: #3b3856; }
 .hm-legal__notice { padding: 12px 16px; border-radius: 12px; background: #fff3c2; color: #5c4300; font-weight: 600; }
+.hm-legal__notice p { margin: 0 0 6px; color: inherit; }
+.hm-legal__toc ol { margin: 8px 0 16px; padding-left: 20px; }
+.hm-legal__toc .hm-link { min-height: 32px; }
+.hm-legal ul { margin: 0 0 12px; padding-left: 20px; color: #3b3856; }
+.hm-legal li { margin-bottom: 8px; }
+.hm-legal__table { overflow-x: auto; margin-bottom: 12px; }
+.hm-legal__table table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+.hm-legal__table th, .hm-legal__table td { text-align: left; vertical-align: top; padding: 8px; border-bottom: 1px solid #e3e0f0; }
+.hm-legal__draft { margin-top: 28px; font-size: 0.85rem; color: var(--hm-muted) !important; }
 .hm-legal .hm-footer__muted { color: var(--hm-muted); }
 .hm-legal .hm-link { display: inline-flex; align-items: center; min-height: 44px; color: var(--hm-primary-dark); }
 
@@ -207,3 +216,17 @@ html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
   html { scroll-behavior: auto; }
   .hm-btn { transition: none; }
 }
+
+/* formulário de solicitação do titular (LGPD/GDPR) */
+.hm-legal__notice--ok { background: #dcf7ea; color: #0c4a2f; }
+.hm-legal__notice--err { background: #ffe1e1; color: #7a1010; }
+.hm-legal__notice ul { margin: 0; }
+.hm-form { display: flex; flex-direction: column; gap: 18px; margin: 20px 0; }
+.hm-form__field { display: flex; flex-direction: column; gap: 6px; border: 0; padding: 0; margin: 0; }
+.hm-form__field legend, .hm-form__field > label { font-weight: 700; margin-bottom: 4px; }
+.hm-form__field small { color: var(--hm-muted); }
+.hm-form input[type='text'], .hm-form input[type='email'], .hm-form textarea { font: inherit; min-height: 48px; padding: 10px 14px; border: 2px solid #d9d5ea; border-radius: 12px; background: #fff; }
+.hm-form input:focus, .hm-form textarea:focus { border-color: var(--hm-primary-dark); outline: none; }
+.hm-form__choice { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.hm-form__choice input { width: 22px; height: 22px; flex: none; }
+.hm-hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }

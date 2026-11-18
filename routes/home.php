@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Home\DemoController;
 use App\Http\Controllers\Home\HomeController;
 use App\Http\Controllers\Home\LegalController;
 use App\Http\Controllers\Privacy\PrivacyRequestController;
@@ -24,3 +25,8 @@ Route::get('/privacidade/solicitacao', [PrivacyRequestController::class, 'create
 Route::post('/privacidade/solicitacao', [PrivacyRequestController::class, 'store'])
     ->middleware('throttle:privacy-request')
     ->name('privacy.request.store');
+
+// Mini-telão da demonstração ao vivo (hero): só fotos aprovadas do evento de demo, polling a cada 5 s.
+Route::get('/demo/photos', [DemoController::class, 'photos'])
+    ->middleware('throttle:demo-screen')
+    ->name('demo.photos');

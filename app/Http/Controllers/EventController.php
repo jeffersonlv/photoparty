@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Event;
 use App\Services\EventScheduler;
 use App\Services\QrCodeGenerator;
+use App\Support\GuestFilters;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -59,7 +60,7 @@ class EventController extends Controller
             'starts_at' => $startsAt,
             'ends_at' => $startsAt->copy()->addHours($account->isOnTrial() ? (int) config('photoparty.trial.max_event_hours') : 4),
             'language' => app()->getLocale(),
-            'enabled_filters' => config('photoparty.filters'),
+            'enabled_filters' => GuestFilters::all(),
         ]);
 
         return view('events.create', ['event' => $event, 'account' => $account]);
@@ -79,11 +80,14 @@ class EventController extends Controller
         // Declaração LGPD/GDPR aceita (validada como "accepted" no EventRequest).
         $event->declared_at = now();
         $event->is_trial = $account->isOnTrial();
-        $event->enabled_filters = $request->validated('enabled_filters', []);
+        $event->enabled_filters = GuestFilters::normalizeList($request->validated('enabled_filters', []));
         $event->forceFill($request->geofenceAttributes());
         $event->screen_settings = config('photoparty.screen_defaults');
         // account_id é preenchido pela trait BelongsToAccount (usuário autenticado).
-        $event->save();
+        // Gravação com a conta travada: a regra de teste/limite mensal é conferida de novo no lock.
+        if ($error = $this->scheduler->createLocked($account, $event)) {
+            return redirect()->route('events.index')->with('error', $error);
+        }
 
         AuditLog::record('event.created', $event);
 
@@ -114,7 +118,7 @@ class EventController extends Controller
         $this->authorize('update', $event);
 
         $event->fill($request->safe()->except(EventRequest::NON_FILLABLE));
-        $event->enabled_filters = $request->validated('enabled_filters', []);
+        $event->enabled_filters = GuestFilters::normalizeList($request->validated('enabled_filters', []));
         $event->forceFill($request->geofenceAttributes());
         $this->scheduler->syncAfterUpdate($event->account, $event);
         $event->save();

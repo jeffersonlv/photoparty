@@ -1,6 +1,7 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
-  applyOpsToPixels, FILTER_KEYS, FILTERS, ledGrid, opMatrix, opsToCss, sepiaOps,
+  applyOpsToPixels, enabledFilterKeys, FILTER_ALIASES, FILTER_KEYS, FILTERS, ledGrid, opMatrix, opsToCss, sepiaOps,
 } from '../../resources/js/guest/effects.js';
 
 const px = (r, g, b) => new Uint8ClampedArray([r, g, b, 255]);
@@ -8,6 +9,27 @@ const px = (r, g, b) => new Uint8ClampedArray([r, g, b, 255]);
 describe('filtros', () => {
   it('tem os filtros pedidos', () => {
     expect(FILTER_KEYS).toEqual(['none', 'bw', 'vintage', 'vivid', 'cool', 'warm']);
+  });
+
+  it('usa exatamente as chaves de config/photoparty.php (lista canonica do servidor)', () => {
+    const php = readFileSync(new URL('../../config/photoparty.php', import.meta.url), 'utf8');
+    const match = php.match(/'filters'\s*=>\s*\[([^\]]*)\]/);
+    const server = [...match[1].matchAll(/'([a-z]+)'/g)].map((m) => m[1]);
+    expect(FILTER_KEYS).toEqual(server);
+    const alias = php.match(/'filter_aliases'\s*=>\s*\[\s*'([a-z]+)'\s*=>\s*'([a-z]+)'/);
+    expect(FILTER_ALIASES).toEqual({ [alias[1]]: alias[2] });
+  });
+
+  it('sepia e so efeito de moldura, nao filtro do convidado', () => {
+    expect(FILTER_KEYS).not.toContain('sepia');
+    expect(FILTERS.sepia).toBeUndefined();
+  });
+
+  it('enabledFilterKeys: ativos do evento, ordem canonica, sempre com none, alias sepia => vintage', () => {
+    expect(enabledFilterKeys(undefined)).toEqual(FILTER_KEYS);
+    expect(enabledFilterKeys([])).toEqual(['none']);
+    expect(enabledFilterKeys(['warm', 'bw', 'hack'])).toEqual(['none', 'bw', 'warm']);
+    expect(enabledFilterKeys(['sepia', 'vintage'])).toEqual(['none', 'vintage']);
   });
 
   it('opsToCss gera a string de ctx.filter', () => {

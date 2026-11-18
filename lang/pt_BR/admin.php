@@ -184,6 +184,9 @@ return [
         'new_item' => 'Novo item',
         'item_enabled' => 'Item ativo',
         'no_items' => 'Nenhum item.',
+        'demo_live' => 'Demonstração ao vivo',
+        'demo_live_label' => 'Mostrar demonstração ao vivo',
+        'demo_live_hint' => 'Ligada: QR code + mini-telão com as últimas fotos de um evento de demonstração. Desligada: bloco estático "demonstração em breve". As fotos da demonstração ficam públicas e são apagadas a cada hora.',
         'pricing_note' => 'Os planos exibidos vêm de Planos (somente os marcados como públicos).',
         'settings_hint' => 'Textos usados no título/descrição da página (SEO) e no rodapé.',
         'sections' => [

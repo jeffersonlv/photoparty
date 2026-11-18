@@ -12,6 +12,11 @@ return [
     'hero' => [
         'screen_label' => 'Telão',
         'qr_label' => 'QR code do evento',
+        'demo_scan' => 'Escaneie com a câmera do celular e envie uma foto',
+        'demo_open' => 'Ou abra o link no celular',
+        'demo_empty' => 'Escaneie o QR code e envie a primeira foto',
+        'demo_photo_alt' => 'Foto enviada na demonstração',
+        'demo_privacy' => 'As fotos aparecem só nesta tela, para quem escaneou este QR code, e são apagadas a cada hora.',
     ],
 
     'pricing' => [

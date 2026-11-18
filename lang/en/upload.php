@@ -20,6 +20,8 @@ return [
         'event_not_live' => 'This event is not accepting photos right now.',
         'event_limit' => 'This event has reached its photo limit.',
         'guest_limit' => 'You have already sent the maximum number of photos for this event.',
+        'demo_limit' => 'The demo reached its photo limit for this hour. Please try again shortly.',
+        'demo_pair' => 'This demo only accepts photos sent through the QR code on the home page. Please scan the QR code again.',
         'storage' => 'We could not save your photo right now (storage unavailable). Please try again later.',
         'not_image' => 'the file is not a valid JPEG, PNG or WebP image.',
         'photo_dimensions' => 'the photo must be 1080 × 1350 px (portrait) or 1920 × 1080 px (landscape).',

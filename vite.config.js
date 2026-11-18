@@ -15,6 +15,7 @@ export default defineConfig({
                 'resources/js/screen/index.js',
                 'resources/js/moderation/index.js',
                 'resources/js/guest/index.js',
+                'resources/js/home/demo.js',
             ],
             refresh: true,
         }),

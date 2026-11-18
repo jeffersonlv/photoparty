@@ -13,7 +13,7 @@
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-CasPjfj_.css",
+    "file": "assets/app-C9sk9oca.css",
     "name": "app",
     "names": [
       "app.css"
@@ -31,7 +31,7 @@
     "isEntry": true
   },
   "resources/css/guest.css": {
-    "file": "assets/guest-B_Z7xtnY.css",
+    "file": "assets/guest-CQ3iDE2t.css",
     "name": "guest",
     "names": [
       "guest.css"
@@ -40,7 +40,7 @@
     "isEntry": true
   },
   "resources/css/home.css": {
-    "file": "assets/home-DCX0jy8l.css",
+    "file": "assets/home-CQLudS7k.css",
     "name": "home",
     "names": [
       "home.css"
@@ -67,13 +67,19 @@
     ]
   },
   "resources/js/guest/index.js": {
-    "file": "assets/index-CsMA5s3Y.js",
+    "file": "assets/index-CI4rIhdR.js",
     "name": "index",
     "src": "resources/js/guest/index.js",
     "isEntry": true,
     "imports": [
       "_module.esm-_IXtyuVN.js"
     ]
+  },
+  "resources/js/home/demo.js": {
+    "file": "assets/demo-EVA9-mrC.js",
+    "name": "demo",
+    "src": "resources/js/home/demo.js",
+    "isEntry": true
   },
   "resources/js/moderation/index.js": {
     "file": "assets/index-5kuT_I_5.js",

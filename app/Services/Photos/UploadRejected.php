@@ -39,6 +39,12 @@ class UploadRejected extends RuntimeException
         return new self(429, 'upload.errors.guest_limit');
     }
 
+    /** Demonstração da home: teto de fotos por hora atingido. */
+    public static function demoLimit(): self
+    {
+        return new self(429, 'upload.errors.demo_limit');
+    }
+
     public static function storage(): self
     {
         return new self(507, 'upload.errors.storage');

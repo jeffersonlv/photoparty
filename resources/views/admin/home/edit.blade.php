@@ -8,6 +8,18 @@
 
         <x-admin.fields :fields="$schema['fields']" prefix="content" :values="$section->content ?? []" />
 
+        @if ($section->key === 'hero')
+            <fieldset class="adm-fieldset">
+                <legend>{{ __('admin.home.demo_live') }}</legend>
+                <input type="hidden" name="demo_live" value="0">
+                <label class="adm-check">
+                    <input type="checkbox" name="demo_live" value="1" @checked(old('demo_live', \App\Services\Demo\DemoEvent::enabled() ? '1' : '0') === '1')>
+                    {{ __('admin.home.demo_live_label') }}
+                </label>
+                <p class="adm-muted">{{ __('admin.home.demo_live_hint') }}</p>
+            </fieldset>
+        @endif
+
         @if ($section->key === 'pricing')
             <p class="adm-muted">{{ __('admin.home.pricing_note') }}</p>
         @endif

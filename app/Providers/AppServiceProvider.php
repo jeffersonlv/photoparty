@@ -3,8 +3,12 @@
 namespace App\Providers;
 
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Support\ProductionHardening;
+use Illuminate\Auth\Events\Lockout;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -19,6 +23,18 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Produção: URLs sempre de APP_URL (sem Host do request), cookie secure, debug desligado.
+        ProductionHardening::apply($this->app->isProduction());
+
+        // A09: bloqueio por excesso de tentativas de login vai para o log de segurança
+        // (e-mail só como hash; nunca a senha).
+        Event::listen(Lockout::class, function (Lockout $event) {
+            Log::channel('security')->warning('Login bloqueado por excesso de tentativas', [
+                'ip' => $event->request->ip(),
+                'email_hash' => hash('sha256', mb_strtolower(trim((string) $event->request->input('email')))),
+            ]);
+        });
+
         // Alias registrado aqui (e não em bootstrap/app.php) para o módulo admin ficar isolado.
         Route::aliasMiddleware('admin', EnsureUserIsAdmin::class);
 

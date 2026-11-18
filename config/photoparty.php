@@ -53,7 +53,25 @@ return [
 
     'locales' => ['pt_BR', 'en'],
 
-    'filters' => ['none', 'bw', 'sepia', 'vivid', 'warm', 'cool'],
+    /*
+    |--------------------------------------------------------------------------
+    | Filtros do convidado (lista canônica)
+    |--------------------------------------------------------------------------
+    |
+    | Fonte única: validação do upload, filtros ativos do evento, payload da página do
+    | convidado e tela de evento leem daqui (App\Support\GuestFilters). O front
+    | (resources/js/guest/effects.js, FILTERS) usa exatamente estas chaves; o teste
+    | tests/js/effects.test.js confere os dois lados.
+    |
+    | 'sepia' NÃO é filtro do convidado: é só o EFEITO da moldura wanted_poster. Clientes e
+    | eventos antigos que ainda mandam/guardam 'sepia' como filtro são aceitos por compatibilidade
+    | e normalizados no servidor para 'vintage' (filter_aliases).
+    |
+    */
+
+    'filters' => ['none', 'bw', 'vintage', 'vivid', 'cool', 'warm'],
+
+    'filter_aliases' => ['sepia' => 'vintage'],
 
     'screen_defaults' => [
         'seconds_per_photo' => 6,
@@ -119,6 +137,27 @@ return [
         'max_accuracy_m' => 150,
         'max_age_seconds' => 120,
         'pass_minutes' => 30,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Demonstração ao vivo (página inicial)
+    |--------------------------------------------------------------------------
+    |
+    | Evento do sistema (events.is_demo) numa conta interna, criado por DemoSeeder. Sempre ao vivo,
+    | moderação pós, sem geolocalização. Fotos aparecem publicamente na home e o comando
+    | demo:reset (de hora em hora) apaga TODAS as fotos e arquivos. Limites contra abuso:
+    | max_photos_per_hour no evento (servidor) e ip_uploads_per_hour por IP.
+    |
+    */
+
+    'demo' => [
+        'slug' => 'demo-ao-vivo',
+        'account_name' => 'Photo Party Demo',
+        'max_photos_per_hour' => 30,
+        'ip_uploads_per_hour' => 6,
+        // Fotos mais recentes no mini-telão da home.
+        'recent_photos' => 8,
     ],
 
     /*

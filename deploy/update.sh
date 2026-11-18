@@ -45,6 +45,7 @@ composer_run install --no-dev --optimize-autoloader --no-interaction --no-progre
 echo "==> Banco de dados"
 "$PHP" artisan migrate --force
 "$PHP" artisan db:seed --class=FrameSeeder --force
+"$PHP" artisan db:seed --class=DemoSeeder --force
 
 echo "==> Caches"
 "$PHP" artisan optimize:clear

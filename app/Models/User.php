@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
+use App\Notifications\QueuedResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -52,6 +53,15 @@ class User extends Authenticatable implements MustVerifyEmail
             'two_factor_recovery_codes' => 'encrypted',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Redefinição de senha pela fila (mesmo tempo de resposta exista o e-mail ou não).
+     */
+    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        // Idioma de quem pediu (a fila roda depois, sem a sessão do usuário).
+        $this->notify((new QueuedResetPassword($token))->locale(app()->getLocale()));
     }
 
     public function account(): BelongsTo

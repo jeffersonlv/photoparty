@@ -90,7 +90,7 @@ describe('my-photos: rede', () => {
 describe('aviso de privacidade e consentimento', () => {
   it('normalizePrivacy descarta URLs externas e dias invalidos', () => {
     expect(normalizePrivacy({ controller: 'Ana', retentionDays: '30', policyUrl: '/privacidade', requestUrl: 'https://x' }))
-      .toEqual({ controller: 'Ana', retentionDays: 30, policyUrl: '/privacidade', requestUrl: '' });
+      .toEqual({ controller: 'Ana', retentionDays: 30, retentionText: '', policyUrl: '/privacidade', requestUrl: '' });
     expect(normalizePrivacy(undefined).retentionDays).toBe(0);
   });
 
@@ -109,7 +109,7 @@ describe('aviso de privacidade e consentimento', () => {
 
   it('consentText usa o controlador e o prazo de retencao', () => {
     globalThis.window = { PHOTO_PARTY_I18N: pt };
-    const app = guestApp({ name: 'F', privacy: { controller: 'Studio X', retentionDays: 30 } });
+    const app = guestApp({ name: 'F', privacy: { controller: 'Studio X', retentionDays: 30, retentionText: 'Guardamos por até 30 dias após o evento.' } });
     expect(app.consentText).toContain('Studio X');
     expect(app.consentText).toContain('30 dias');
     const anon = guestApp({ name: 'F' });

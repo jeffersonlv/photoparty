@@ -1,6 +1,6 @@
 @php
     $isTrial = $event->exists ? $event->is_trial : $account->isOnTrial();
-    $filters = old('enabled_filters', $event->enabled_filters ?? []);
+    $filters = \App\Support\GuestFilters::normalizeList((array) old('enabled_filters', $event->enabled_filters ?? []));
 @endphp
 
 @if ($isTrial)
@@ -67,7 +67,7 @@
     <fieldset>
         <legend class="field-label">{{ ucfirst(__('app.fields.enabled_filters')) }}</legend>
         <div class="mt-2 grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:grid-cols-3">
-            @foreach (config('photoparty.filters') as $filter)
+            @foreach (\App\Support\GuestFilters::all() as $filter)
                 <label class="choice">
                     <input type="checkbox" name="enabled_filters[]" value="{{ $filter }}" class="checkbox" @checked(in_array($filter, (array) $filters, true))>
                     {{ __('app.filters.'.$filter) }}

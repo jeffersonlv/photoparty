@@ -30,7 +30,25 @@ export const FILTERS = Object.freeze({
   warm: [{ fn: 'sepia', v: 0.25 }, { fn: 'saturate', v: 1.25 }, { fn: 'brightness', v: 1.03 }],
 });
 
+/**
+ * Chaves canonicas dos filtros do convidado. Identicas a config('photoparty.filters') do servidor
+ * (config/photoparty.php); tests/js/effects.test.js confere os dois lados. "sepia" NAO e filtro:
+ * e so o efeito da moldura (sepiaOps).
+ */
 export const FILTER_KEYS = Object.freeze(Object.keys(FILTERS));
+
+/** Chaves antigas aceitas por compatibilidade (o servidor normaliza do mesmo jeito). */
+export const FILTER_ALIASES = Object.freeze({ sepia: 'vintage' });
+
+/**
+ * Filtros oferecidos ao convidado: os ativos do evento (payload "filters"), em ordem canonica,
+ * sempre com "none". Sem lista valida (evento antigo), oferece todos.
+ */
+export function enabledFilterKeys(raw) {
+  if (!Array.isArray(raw)) return [...FILTER_KEYS];
+  const wanted = new Set(raw.map((k) => FILTER_ALIASES[k] ?? k));
+  return FILTER_KEYS.filter((k) => k === 'none' || wanted.has(k));
+}
 
 const UNITS = { 'hue-rotate': 'deg' };
 

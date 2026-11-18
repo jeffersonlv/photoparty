@@ -46,7 +46,7 @@ return [
     'filters' => [
         'none' => 'No filter',
         'bw' => 'Black and white',
-        'sepia' => 'Sepia',
+        'vintage' => 'Vintage',
         'vivid' => 'Vivid',
         'warm' => 'Warm',
         'cool' => 'Cool',

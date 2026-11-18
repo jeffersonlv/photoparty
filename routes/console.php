@@ -24,6 +24,9 @@ Schedule::command('exports:purge-expired')->hourly()->withoutOverlapping();
 // LGPD/GDPR: retenção (fotos/ZIPs de eventos vencidos, órfãos, IPs de auditoria > 90 dias).
 Schedule::command('privacy:enforce-retention')->dailyAt('03:17')->withoutOverlapping();
 
+// Demonstração ao vivo da home: de hora em hora apaga TODAS as fotos/arquivos da demo e mantém o evento ao vivo.
+Schedule::command('demo:reset')->hourly()->withoutOverlapping();
+
 // Fila (driver database) processada pelo cron; sem processo longo no servidor compartilhado.
 Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3')
     ->everyMinute()

@@ -63,9 +63,26 @@ Admin em `/admin` (middleware `auth`, `admin`, `verified`; qualquer usuário que
 - **Página inicial (`/admin/home`):** seções com toggle e ordem, conteúdo por idioma (pt_BR/en) com campos definidos em `config/home_sections.php`, itens repetíveis, botão Visualizar (sem salvar), SEO e contato. O conteúdo é texto puro, sempre escapado.
 - **Home pública (`/`):** só seções ativas, em cache de arquivo por idioma (limpo ao salvar no admin). Rodapé com Termos (`/termos`) e Privacidade (`/privacidade`) sempre presente; texto-modelo LGPD/GDPR completo (ver "Privacidade (LGPD/GDPR)"), ainda pendente de revisão jurídica.
 - **Conteúdo inicial:** `php artisan db:seed --class=HomeSeeder` (idempotente, seguro em produção; não sobrescreve edições).
-- **Demonstração ao vivo** do hero: por enquanto um bloco estático (`#live-demo`).
+- **Demonstração ao vivo** do hero: ver a seção "Demonstração ao vivo" abaixo (com o toggle desligado, volta ao bloco estático `#live-demo`).
 
 Credenciais de demonstração do seeder (apenas local): `admin@photoparty.test` com a senha de `SEED_PASSWORD` (padrão `Password!123`); acesse `/login` e depois `/admin`.
+
+## Demonstração ao vivo
+
+O hero da home mostra o QR code do link do convidado de um evento de demonstração e um mini-telão (carrossel das últimas 8 fotos, polling de 5 s). O visitante escaneia, envia e vê a foto aparecer na própria página inicial. A demo é **pareada e privada por visitante**: cada um só vê as fotos que enviou pelo SEU QR.
+
+- **Pareamento:** ao carregar a home, o servidor gera um código aleatório de 32 caracteres, guarda na sessão do visitante (válido 1 h) e o QR aponta para o link do convidado com `&d=CODIGO`. O upload da demo exige esse código (inválido, ausente ou expirado: 422) e grava só o hash na coluna `photos.demo_pair`. `GET /demo/photos` devolve apenas fotos aprovadas com `demo_pair` igual ao hash do código da sessão de quem pede; sem código válido, lista vazia. Assim ninguém publica imagem na home para os outros.
+
+- **Evento do sistema:** conta interna "Photo Party Demo" (plano ativo e não público, sem usuários), evento `events.is_demo` com slug `demo-ao-vivo`, moderação pós e sem geolocalização. Criado por `php artisan db:seed --class=DemoSeeder` (idempotente, seguro em produção; mantém tokens e a conta). O evento é identificado só por `is_demo`, nunca pelo nome da conta.
+- **Sempre ao vivo e privacidade:** `php artisan demo:reset` roda de hora em hora (agendado em `routes/console.php`): apaga TODAS as fotos (registros e arquivos original, miniatura, prévia e a pasta do evento) e ajusta início/fim (ontem até depois de amanhã), então o evento nunca encerra. Sem o evento (seeder não rodou), o comando não faz nada e a home mostra o bloco estático. A página do convidado da demo e a home avisam que as fotos aparecem só na tela de quem gerou o QR code e são apagadas a cada hora. `deploy/update.sh` roda o `DemoSeeder` após o `FrameSeeder`.
+- **Limites:** 30 fotos por hora no evento (`photoparty.demo.max_photos_per_hour`, recusa com 429) e 6 envios por hora por IP (`ip_uploads_per_hour`), além dos limites normais por aparelho e IP.
+- **Endpoint público mínimo:** `GET /demo/photos` (rota `demo.photos`, 60 req/min por IP). Sem parâmetros (o pareamento vem da sessão): devolve só fotos aprovadas do evento de demo enviadas por esse visitante (miniaturas com URL assinada de 10 min); 404 se a demo estiver desligada ou fora do ar. Dados na página vão em `<script type="application/json" id="pp-demo">` e o JS está em `resources/js/home/demo.js` (CSP estrita, sem recurso externo).
+- **Toggle no admin:** `/admin/home/sections/hero` tem "Mostrar demonstração ao vivo" (grava `site_settings.demo_live`; padrão ligado). Desligada, a home volta ao bloco estático e o endpoint responde 404.
+- **Abuso:** como as fotos só aparecem para quem enviou, não há exposição pública; limpeza horária e limites seguem valendo (`php artisan demo:reset` apaga na hora).
+
+## Filtros do convidado
+
+A lista canônica fica em `config/photoparty.php` (`filters`: `none, bw, vintage, vivid, cool, warm`), lida por `App\Support\GuestFilters` na validação do upload, nos filtros ativos do evento (formulário do organizador) e no payload da página do convidado (`filters`). O front usa as mesmas chaves (`FILTERS` em `resources/js/guest/effects.js`; um teste vitest confere os dois lados). `sepia` é apenas o efeito da moldura `wanted_poster`; clientes e eventos antigos que ainda mandam ou guardam `sepia` como filtro são aceitos e normalizados no servidor para `vintage` (`filter_aliases`).
 
 ## Deploy no Hostinger
 
@@ -93,7 +110,7 @@ No hPanel, um cron a cada minuto (com o binário do PHP 8.3):
 * * * * * cd /caminho/do/projeto && /opt/alt/php83/usr/bin/php artisan schedule:run >> /dev/null 2>&1
 ```
 
-O agendamento (`routes/console.php`) roda: `accounts:expire-trials`, `events:refresh-statuses` (a cada minuto), `exports:purge-expired` (de hora em hora), `privacy:enforce-retention` (diário, 03:17) e, por último, `queue:work --stop-when-empty --max-time=50 --tries=3`.
+O agendamento (`routes/console.php`) roda: `accounts:expire-trials`, `events:refresh-statuses` (a cada minuto), `exports:purge-expired` e `demo:reset` (de hora em hora), `privacy:enforce-retention` (diário, 03:17) e, por último, `queue:work --stop-when-empty --max-time=50 --tries=3`.
 
 ## O que está implementado
 

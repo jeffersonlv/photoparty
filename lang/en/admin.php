@@ -184,6 +184,9 @@ return [
         'new_item' => 'New item',
         'item_enabled' => 'Item enabled',
         'no_items' => 'No items.',
+        'demo_live' => 'Live demo',
+        'demo_live_label' => 'Show live demo',
+        'demo_live_hint' => 'On: QR code + mini screen with the latest photos of a demo event. Off: static "demo coming soon" block. Demo photos are public and deleted every hour.',
         'pricing_note' => 'The plans shown come from Plans (only the ones marked public).',
         'settings_hint' => 'Texts used for the page title/description (SEO) and in the footer.',
         'sections' => [

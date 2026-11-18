@@ -114,4 +114,17 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Timebox (anti-enumeração por tempo de resposta, OWASP A07)
+    |--------------------------------------------------------------------------
+    |
+    | Login e "esqueci a senha" levam no mínimo este tempo (microssegundos), exista
+    | o e-mail ou não. O padrão do Laravel (200 ms) é menor que um bcrypt de custo 12
+    | (~250 ms medidos), o que deixava o e-mail existente mais lento e detectável.
+    |
+    */
+
+    'timebox_duration' => (int) env('AUTH_TIMEBOX_US', 600000),
+
 ];

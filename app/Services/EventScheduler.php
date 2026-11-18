@@ -42,6 +42,30 @@ class EventScheduler
     }
 
     /**
+     * Grava um evento novo com a conta travada (lockForUpdate): duas criações simultâneas
+     * não furam "um evento de teste por conta" nem o limite mensal do plano (OWASP A06).
+     * Retorna a mensagem de erro (nada gravado) ou null.
+     */
+    public function createLocked(Account $account, Event $event): ?string
+    {
+        return DB::transaction(function () use ($account, $event) {
+            $locked = Account::query()->whereKey($account->getKey())->lockForUpdate()->first();
+
+            if ($locked === null) {
+                return __('app.errors.account_cannot_manage_events');
+            }
+
+            if ($error = $this->creationError($locked)) {
+                return $error;
+            }
+
+            $event->save();
+
+            return null;
+        });
+    }
+
+    /**
      * Valida início/fim de um evento (novo ou existente). Retorna [campo => mensagem].
      *
      * @return array<string, string>

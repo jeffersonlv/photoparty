@@ -21,13 +21,23 @@ class SecurityHeaders
         $headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         $headers->set('X-Frame-Options', 'DENY');
         $headers->set('X-Content-Type-Options', 'nosniff');
-        // Rotas com token na URL (telão) definem 'no-referrer' por conta própria.
-        if (! $headers->has('Referrer-Policy')) {
+        // Token na URL: a página do convidado (/e/{slug}?t=...) e suas sub-rotas nunca mandam
+        // Referer (nem para o próprio site: o token iria parar em logs de acesso). O telão
+        // (/screen/{token}) define 'no-referrer' no próprio controller.
+        if ($request->is('e/*') || $request->query->has('t')) {
+            $headers->set('Referrer-Policy', 'no-referrer');
+        } elseif (! $headers->has('Referrer-Policy')) {
             $headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         }
         $headers->set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=(self), payment=(), usb=()');
         $headers->set('Cross-Origin-Opener-Policy', 'same-origin');
         $headers->remove('X-Powered-By');
+
+        // O PHP (expose_php=On, comum em hospedagem compartilhada) manda "X-Powered-By: PHP/x.y"
+        // fora do objeto Response; tira também do buffer de headers do SAPI.
+        if (! headers_sent()) {
+            header_remove('X-Powered-By');
+        }
 
         return $response;
     }

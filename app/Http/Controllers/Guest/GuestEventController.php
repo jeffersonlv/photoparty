@@ -9,6 +9,7 @@ use App\Models\Event;
 use App\Models\Frame;
 use App\Services\Geofence\LocationCheck;
 use App\Services\GuestDevice;
+use App\Support\GuestFilters;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\App;
@@ -67,7 +68,7 @@ class GuestEventController extends Controller
             ], 410);
         }
 
-        $payload = $this->payload($event, $this->guestToken($request));
+        $payload = $this->payload($event, $this->guestToken($request), (string) $request->query('d'));
         // "Envio só no local do evento": só com a geofence em vigor (conta ainda com o recurso).
         $payload['location'] = $event->geofenceActive() ? [
             'url' => route('guest.location', ['slug' => $event->slug, 't' => $this->guestToken($request)], false),
@@ -83,7 +84,7 @@ class GuestEventController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function payload(Event $event, string $token): array
+    private function payload(Event $event, string $token, string $demoCode = ''): array
     {
         $lang = str_starts_with($event->language, 'en') ? 'en' : 'pt';
 
@@ -93,8 +94,12 @@ class GuestEventController extends Controller
             'moderation' => $event->moderation === 'pre',
             'language' => $event->language,
             'askGuestName' => (bool) $event->ask_guest_name,
+            // Evento de demonstração da home: a página mostra o aviso de fotos públicas apagadas de hora em hora.
+            'demo' => (bool) $event->is_demo,
+            // Filtros ativos do evento (chaves canônicas de config photoparty.filters).
+            'filters' => GuestFilters::enabledFor($event),
             // URLs relativas: mesma origem da página (CSP connect-src 'self').
-            'uploadUrl' => route('guest.photos.store', ['slug' => $event->slug, 't' => $token], false),
+            'uploadUrl' => route('guest.photos.store', array_filter(['slug' => $event->slug, 't' => $token, 'd' => $event->is_demo ? $demoCode : null]), false),
             // "Minhas fotos": só as deste aparelho, enquanto o evento está ao vivo.
             'myPhotosUrl' => route('guest.mine.index', ['slug' => $event->slug, 't' => $token], false),
             // Aviso de privacidade (LGPD/GDPR): o organizador é o controlador; o Photo Party, operador.
@@ -122,15 +127,19 @@ class GuestEventController extends Controller
      * Dados do aviso de consentimento: controlador (nome da conta do organizador), prazo de
      * retenção do plano e links da política e do formulário de solicitação do titular.
      *
-     * @return array{controller:string, retentionDays:int, policyUrl:string, requestUrl:string}
+     * @return array{controller:string, retentionDays:int, retentionText:string, policyUrl:string, requestUrl:string}
      */
     private function privacyNotice(Event $event): array
     {
         $account = Account::query()->find($event->account_id);
 
+        $days = $account?->retentionDays() ?? (int) config('photoparty.default_retention_days');
+
         return [
             'controller' => (string) ($account?->name ?? ''),
-            'retentionDays' => $account?->retentionDays() ?? (int) config('photoparty.default_retention_days'),
+            'retentionDays' => $days,
+            // Plural correto ("1 dia", "2 dias") feito no servidor (trans_choice).
+            'retentionText' => $days > 0 ? trans_choice('guest.consent_retention', $days, ['days' => $days]) : '',
             'policyUrl' => route('legal.privacy', ['lang' => $event->language], false),
             'requestUrl' => route('privacy.request.create', ['lang' => $event->language], false),
         ];

@@ -28,7 +28,7 @@ class Photo extends Model
      */
     protected $dateFormat = 'Y-m-d H:i:s.u';
 
-    protected $hidden = ['id', 'account_id', 'event_id', 'device_hash', 'original_path', 'thumb_path'];
+    protected $hidden = ['id', 'account_id', 'event_id', 'device_hash', 'original_path', 'thumb_path', 'demo_pair'];
 
     protected $attributes = [
         'status' => 'pending',

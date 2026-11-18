@@ -93,6 +93,23 @@ html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 .hm-demo__qr svg { width: 56px; height: 56px; }
 .hm-demo__note { margin-top: 14px; color: #cfcbea; text-align: center; font-size: .9rem; font-weight: 600; }
 
+/* Demonstração ao vivo: mini-telão (carrossel) + QR do convidado */
+.hm-demo--live .hm-demo__screen { padding: 0; }
+.hm-demo--live .hm-demo__grid { position: absolute; inset: 0; padding: 40px 14px 14px; opacity: .55; transition: opacity .4s; }
+.hm-demo--live .hm-demo__screen.has-photos .hm-demo__grid { opacity: 0; }
+.hm-demo__stage { position: absolute; inset: 0; }
+.hm-demo__photo { position: absolute; inset: 38px 16px 14px; width: calc(100% - 32px); height: calc(100% - 52px); object-fit: contain; border-radius: 6px; opacity: 0; transition: opacity .5s ease; }
+.hm-demo__photo.is-active { opacity: 1; }
+.hm-demo__empty { position: absolute; left: 14px; right: 14px; bottom: 14px; margin: 0; padding: 8px 12px; border-radius: 12px; background: rgba(24, 19, 48, .82); color: #fff; font-size: .92rem; font-weight: 600; text-align: center; }
+.hm-demo__empty[hidden] { display: none; }
+.hm-demo__scan { display: flex; align-items: center; gap: 16px; margin-top: 14px; }
+.hm-demo__qrimg { flex: none; width: 112px; height: 112px; padding: 6px; border-radius: 14px; background: #fff; }
+.hm-demo__scantext { min-width: 0; }
+.hm-demo__scantitle { margin: 0; color: #fff; font-size: 1rem; font-weight: 700; line-height: 1.35; }
+.hm .hm-demo__link { display: inline-block; margin-top: 6px; color: var(--hm-flash); font-size: .9rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.hm-demo__privacy { margin: 12px 0 0; color: #cfcbea; font-size: .8rem; line-height: 1.45; }
+.hm-demo--live .hm-demo__note { margin-top: 8px; text-align: left; }
+
 /* Seções */
 .hm-section { padding: 56px 0; }
 .hm-section__head { max-width: 640px; margin: 0 0 32px; }
@@ -209,11 +226,13 @@ html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
   .hm-hero__inner { grid-template-columns: 1.1fr 1fr; gap: 56px; }
   .hm-demo__qr svg { width: 72px; height: 72px; }
   .hm-demo__qr { right: -14px; }
+  .hm-demo__qrimg { width: 124px; height: 124px; }
   .hm-cards { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  .hm-demo__photo, .hm-demo--live .hm-demo__grid { transition: none; }
   .hm-btn { transition: none; }
 }
 

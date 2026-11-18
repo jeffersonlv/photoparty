@@ -71,6 +71,12 @@ describe('traducoes e Blade', () => {
 });
 
 describe('normalizeEventConfig', () => {
+  it('filters: usa os ativos do evento (chaves canonicas) e cai em todos sem a lista', () => {
+    expect(normalizeEventConfig({ filters: ['none', 'bw', 'vintage'] }).filters).toEqual(['none', 'bw', 'vintage']);
+    expect(normalizeEventConfig({ filters: ['sepia'] }).filters).toEqual(['none', 'vintage']);
+    expect(normalizeEventConfig({}).filters).toEqual(['none', 'bw', 'vintage', 'vivid', 'cool', 'warm']);
+  });
+
   it('aplica padroes e descarta molduras invalidas', () => {
     const c = normalizeEventConfig({
       name: 'Festa', moderation: 1, frames: [{ key: 'a', name: 'A', configUrl: '/a.json' }, { key: 'b' }, null],

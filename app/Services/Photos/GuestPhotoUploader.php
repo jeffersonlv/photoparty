@@ -32,7 +32,7 @@ class GuestPhotoUploader
     }
 
     /**
-     * @param  array{orientation:string, filter:?string, guest_name:?string, guest_texts:array<string,string>, consent_version:string, location_verified?:bool}  $data
+     * @param  array{orientation:string, filter:?string, guest_name:?string, guest_texts:array<string,string>, consent_version:string, location_verified?:bool, demo_pair?:?string}  $data
      */
     public function store(
         Event $event,
@@ -73,6 +73,12 @@ class GuestPhotoUploader
                     throw UploadRejected::eventLimit();
                 }
 
+                // Demonstração da home: no máximo N fotos por hora (inclui as que o convidado apagou).
+                if ($locked->is_demo
+                    && (clone $photos)->where('created_at', '>=', now()->subHour()->format('Y-m-d H:i:s.u'))->count() >= (int) config('photoparty.demo.max_photos_per_hour')) {
+                    throw UploadRejected::demoLimit();
+                }
+
                 if ($locked->max_photos_per_guest !== null
                     && (clone $photos)->where('device_hash', $deviceHash)->count() >= $locked->max_photos_per_guest) {
                     throw UploadRejected::guestLimit();
@@ -97,6 +103,8 @@ class GuestPhotoUploader
                 $photo->event_id = $locked->id;
                 $photo->frame_id = $frame?->id;
                 $photo->device_hash = $deviceHash;
+                // Demo da home: hash do código de pareamento (nunca o código em claro).
+                $photo->demo_pair = $data['demo_pair'] ?? null;
                 // Prova do consentimento (LGPD art. 8º §2º / GDPR art. 7(1)).
                 $photo->consent_version = $data['consent_version'];
                 $photo->consented_at = now();

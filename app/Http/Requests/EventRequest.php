@@ -53,7 +53,7 @@ class EventRequest extends FormRequest
             'ask_guest_name' => ['boolean'],
             'max_photos_per_guest' => ['nullable', 'integer', 'min:1', 'max:100'],
             'enabled_filters' => ['nullable', 'array'],
-            'enabled_filters.*' => ['string', Rule::in(config('photoparty.filters'))],
+            'enabled_filters.*' => ['string', Rule::in(\App\Support\GuestFilters::accepted())],
             'language' => ['required', Rule::in(config('photoparty.locales'))],
             // Geolocalização: só para conta com o recurso; sem ele os campos são ignorados.
             ...($this->geofenceAllowed() ? [

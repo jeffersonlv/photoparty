@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\Demo\DemoEvent;
 use App\Services\GuestDevice;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -22,6 +23,11 @@ class GuestMediaServiceProvider extends ServiceProvider
 
             if ($device = GuestDevice::limiterKey($request)) {
                 $limits[] = Limit::perMinute(6)->by('guest-upload-device|'.$device);
+            }
+
+            // Demonstração da home (aberta a qualquer visitante): teto por hora por IP.
+            if (DemoEvent::isDemoSlug($request->route('slug'))) {
+                $limits[] = Limit::perHour((int) config('photoparty.demo.ip_uploads_per_hour'))->by('guest-upload-demo-ip|'.$request->ip());
             }
 
             return $limits;
@@ -57,6 +63,11 @@ class GuestMediaServiceProvider extends ServiceProvider
         // Página do convidado (GET /e/...): protege contra varredura de slugs/tokens.
         RateLimiter::for('guest-page', function (Request $request) {
             return Limit::perMinute(60)->by('guest-page|'.$request->ip());
+        });
+
+        // Polling público do mini-telão da home (a cada 5 s por aba aberta).
+        RateLimiter::for('demo-screen', function (Request $request) {
+            return Limit::perMinute(60)->by('demo-screen|'.$request->ip());
         });
 
         // Entrega de imagens: telão e painel carregam muitas miniaturas.

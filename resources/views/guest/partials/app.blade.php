@@ -27,6 +27,8 @@
             <div class="gp-welcome-body">
             <h1 class="gp-title" tabindex="-1" data-step-heading>{{ __('guest.consent_title') }}</h1>
             <p class="gp-lead" x-text="welcomeText"></p>
+            {{-- Demonstracao da pagina inicial: as fotos sao publicas ali e apagadas de hora em hora. --}}
+            <p class="gp-alert gp-alert--demo" role="note" x-show="isDemo">{{ __('guest.demo_notice') }}</p>
             <div class="gp-card">
                 <p class="gp-small" x-text="consentText"></p>
                 <p class="gp-small gp-links" x-show="hasPrivacyLinks">

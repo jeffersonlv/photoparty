@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Notifications\QueuedResetPassword;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -54,7 +55,7 @@ it('sends the password reset link without revealing whether the email exists', f
     $user = User::factory()->create();
 
     $this->post(route('password.email'), ['email' => $user->email])->assertSessionHas('status', __('passwords.sent'));
-    Notification::assertSentTo($user, ResetPassword::class);
+    Notification::assertSentTo($user, QueuedResetPassword::class);
 
     $this->post(route('password.email'), ['email' => 'ninguem@example.com'])->assertSessionHas('status', __('passwords.sent'));
 });
@@ -65,7 +66,7 @@ it('resets the password with a valid token', function () {
 
     $this->post(route('password.email'), ['email' => $user->email]);
 
-    Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user) {
+    Notification::assertSentTo($user, QueuedResetPassword::class, function (ResetPassword $notification) use ($user) {
         $this->get(route('password.reset', ['token' => $notification->token, 'email' => $user->email]))->assertOk();
 
         $this->post(route('password.store'), [

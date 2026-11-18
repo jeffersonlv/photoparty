@@ -8,10 +8,12 @@ use App\Models\Event;
 use App\Models\Frame;
 use App\Models\Photo;
 use App\Services\Geofence\LocationCheck;
+use App\Services\Demo\DemoEvent;
 use App\Services\GuestDevice;
 use App\Services\Photos\GuestPhotoUploader;
 use App\Services\Photos\ImageSanitizer;
 use App\Services\Photos\UploadRejected;
+use App\Support\GuestFilters;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -31,9 +33,6 @@ use Illuminate\Validation\ValidationException;
 class GuestPhotoController extends Controller
 {
     use ResolvesGuestEvent;
-
-    /** Chaves aceitas: filtros do front (effects.js) + lista do config. */
-    public const FILTERS = ['none', 'bw', 'vintage', 'sepia', 'vivid', 'warm', 'cool'];
 
     public function __construct(
         private readonly GuestDevice $device,
@@ -66,7 +65,19 @@ class GuestPhotoController extends Controller
             $locationVerified = true;
         }
 
+        // Demo da home: só com o código de pareamento do QR do visitante (?d=); senão 422.
+        $demoPair = null;
+
+        if ($event->is_demo) {
+            $demoPair = app(DemoEvent::class)->resolvePair($request->query('d'));
+
+            if ($demoPair === null) {
+                throw ValidationException::withMessages(['photo' => __('upload.errors.demo_pair')]);
+            }
+        }
+
         [$frame, $data] = $this->validated($request, $event);
+        $data['demo_pair'] = $demoPair;
         $data['location_verified'] = $locationVerified;
 
         try {
@@ -121,7 +132,7 @@ class GuestPhotoController extends Controller
             'thumb' => ['required', 'file', 'max:300'],
             'orientation' => ['required', 'string', 'in:portrait,landscape'],
             'frame_key' => ['nullable', 'string', 'max:64'],
-            'filter' => ['nullable', 'string', 'in:'.implode(',', self::FILTERS)],
+            'filter' => ['nullable', 'string', 'in:'.implode(',', GuestFilters::accepted())],
             'guest_name' => ['nullable', 'string', 'max:60', 'not_regex:/[<>]/'],
             'guest_texts' => ['nullable', 'string', 'max:4000'],
             'consent' => ['required', 'accepted'],
@@ -175,7 +186,8 @@ class GuestPhotoController extends Controller
 
         return [$frame, [
             'orientation' => $orientation,
-            'filter' => $input['filter'] ?? 'none',
+            // 'sepia' (clientes antigos) vira 'vintage'.
+            'filter' => GuestFilters::normalize($input['filter'] ?? null),
             'guest_name' => $guestName === '' ? null : $guestName,
             'guest_texts' => $texts,
             'consent_version' => (string) $input['consent_version'],

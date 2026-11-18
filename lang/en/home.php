@@ -12,6 +12,11 @@ return [
     'hero' => [
         'screen_label' => 'Big screen',
         'qr_label' => 'Event QR code',
+        'demo_scan' => 'Scan with your phone camera and send a photo',
+        'demo_open' => 'Or open the link on your phone',
+        'demo_empty' => 'Scan the QR code and send the first photo',
+        'demo_photo_alt' => 'Photo sent in the demo',
+        'demo_privacy' => 'Photos appear only on this screen, for whoever scanned this QR code, and are deleted every hour.',
     ],
 
     'pricing' => [

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\HomeSection;
+use App\Models\SiteSetting;
+use App\Services\Demo\DemoEvent;
 use App\Services\AuditLogger;
 use App\Services\HomeContent;
 use App\Support\HomeSchema;
@@ -45,6 +47,16 @@ class HomeSectionController extends Controller
             'content' => HomeSchema::extract($fields, $validated['content']),
             'updated_by' => $request->user()->id,
         ])->save();
+
+        // Hero: liga/desliga a demonstração ao vivo (evento de demo + mini-telão); desligada, mostra o bloco estático.
+        if ($section->key === 'hero') {
+            $demoLive = $request->validate(['demo_live' => ['nullable', 'in:0,1']])['demo_live'] ?? null;
+
+            if ($demoLive !== null) {
+                SiteSetting::query()->updateOrCreate(['key' => DemoEvent::SETTING_KEY], ['value' => $demoLive]);
+                $this->audit->log('home.demo_toggled', $section, ['enabled' => $demoLive === '1']);
+            }
+        }
 
         $this->home->forget();
         $this->audit->log('home.section_updated', $section, ['key' => $section->key]);

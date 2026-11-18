@@ -200,6 +200,7 @@ html, .gp-body { height: 100%; }
 .gp-progress { flex: none; }
 .gp-progress progress { width: 100%; height: 12px; border-radius: 999px; overflow: hidden; accent-color: var(--gp-accent); }
 .gp-alert { flex: none; margin: 0; padding: 12px 14px; border-radius: 14px; background: rgba(255, 107, 107, 0.14); border: 1px solid rgba(255, 107, 107, 0.5); color: #ffd6d6; font-size: 0.92rem; }
+.gp-alert--demo { background: rgba(255, 210, 63, 0.14); border-color: rgba(255, 210, 63, 0.55); color: #ffe9a3; }
 .gp-alert--sm { padding: 8px 12px; font-size: 0.85rem; }
 .gp-check-icon { color: var(--gp-ok); flex: none; }
 

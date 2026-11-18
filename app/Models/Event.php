@@ -69,6 +69,7 @@ class Event extends Model
             'purged_at' => 'datetime',
             'status' => EventStatus::class,
             'is_trial' => 'boolean',
+            'is_demo' => 'boolean',
             'geofence_enabled' => 'boolean',
             'geofence_lat' => 'float',
             'geofence_lng' => 'float',

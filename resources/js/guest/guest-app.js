@@ -7,7 +7,7 @@ import {
   renderComposition, zoomAround, ORIENTATIONS,
 } from './frame-engine.js';
 import { guestTextFields, limitChars } from './frame-config.js';
-import { FILTER_KEYS, makeCanvas } from './effects.js';
+import { enabledFilterKeys, makeCanvas } from './effects.js';
 import {
   captureFrame, classifyCameraError, isCameraSupported, readImageFile, shouldMirror, startCamera, stopCamera,
 } from './camera.js';
@@ -37,6 +37,7 @@ export function normalizePrivacy(raw = {}) {
   return {
     controller: String(raw?.controller ?? ''),
     retentionDays: Number.isFinite(days) && days > 0 ? days : 0,
+    retentionText: String(raw?.retentionText ?? ''),
     policyUrl: sameOrigin(raw?.policyUrl),
     requestUrl: sameOrigin(raw?.requestUrl),
   };
@@ -67,6 +68,8 @@ export function normalizeEventConfig(raw = {}) {
     location: normalizeLocation(raw.location),
     language: String(raw.language ?? 'pt_BR'),
     askGuestName: !!raw.askGuestName,
+    demo: !!raw.demo,
+    filters: enabledFilterKeys(raw.filters),
     csrfToken: raw.csrfToken ?? null,
     frames: frames
       .filter((f) => f && typeof f.key === 'string' && typeof f.configUrl === 'string')
@@ -123,7 +126,7 @@ export function guestApp(rawConfig, deps = {}) {
     cfg,
     // so as molduras que existem na orientacao atual da foto
     get frameOptions() { return framesForOrientation(cfg.frames, this.orientation); },
-    filterOptions: FILTER_KEYS.map((key) => ({ key, label: t(`filter_${key}`) })),
+    filterOptions: cfg.filters.map((key) => ({ key, label: t(`filter_${key}`) })),
 
     step: 'welcome',
     consent: false,
@@ -715,12 +718,13 @@ export function guestApp(rawConfig, deps = {}) {
     get consentText() {
       const p = cfg.privacy;
       const base = t('consent_text', { controller: p.controller || t('consent_controller_fallback') });
-      const withRetention = p.retentionDays ? `${base} ${t('consent_retention', { days: p.retentionDays })}` : base;
+      const withRetention = p.retentionDays && p.retentionText ? `${base} ${p.retentionText}` : base;
       // geofence ativa: o aviso informa o uso (nao armazenado) da localizacao
       return this.locationRequired ? `${withRetention} ${t('consent_geo')}` : withRetention;
     },
     get privacyPolicyUrl() { return cfg.privacy.policyUrl || '#'; },
     get privacyRequestUrl() { return cfg.privacy.requestUrl || '#'; },
+    get isDemo() { return cfg.demo; },
     get hasPrivacyLinks() { return !!(cfg.privacy.policyUrl && cfg.privacy.requestUrl); },
 
     /* ---------------- minhas fotos ---------------- */

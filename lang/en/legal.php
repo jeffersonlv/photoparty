@@ -50,7 +50,7 @@ return [
                 'id' => 'data',
                 'heading' => '3. Data we process',
                 'items' => [
-                    'Guests: the photo sent (already composed with frame and filter), its thumbnail, the optional name and texts the guest types on the frame, date and time of upload, the version of the notice accepted and an anonymous device identifier (hash of a random cookie). We do not ask for e-mail, phone or an account. Image metadata (EXIF, including GPS location) is removed on the server.',
+                    'Guests: the photo sent (already composed with frame and filter), its thumbnail, the optional name and texts the guest types on the frame, date and time of upload, the version of the notice accepted and an anonymous device identifier (hash of a random cookie). We do not ask for e-mail, phone or an account. Image metadata (EXIF, including GPS location) is removed on the server. For events with uploads only at the venue, the device location is used only to check the distance and is not stored (section 15).',
                     'Organizers: name, e-mail, password (stored only as a hash), account and event data, uploaded frames and audit records of dashboard actions (including IP address).',
                     'Data subject requests: event link, contact e-mail and the description of the request.',
                     'Technical records: IP address and browser in the session and in security logs, for the periods in section 7.',
@@ -152,8 +152,18 @@ return [
                 'cookies' => true,
             ],
             [
+                'id' => 'geolocation',
+                'heading' => '15. Geolocation (uploads only at the venue)',
+                'paragraphs' => [
+                    'On plans that offer this feature, some organizers choose to accept photos only from people at the event venue. For those events, before the camera opens, the guest page asks for permission to use the device location.',
+                    'Purpose: only to check whether the device is within the radius set by the organizer. Legal basis: consent (LGPD art. 7, I; GDPR art. 6(1)(a)), given by tapping "Allow location" and in the browser permission prompt. Without permission it is not possible to send photos to that event; nothing changes for other events.',
+                    'We do not store your location: latitude, longitude and accuracy are used only to calculate the distance at the time of sending and are then discarded. They are not saved in the database, in logs, or shared with the organizer. All that is kept is a 30-minute "pass" without coordinates in the browser session and, on the photo, an indication that the location was checked (yes/no).',
+                    'You can deny or withdraw location permission at any time in your browser or device settings.',
+                ],
+            ],
+            [
                 'id' => 'changes',
-                'heading' => '15. Changes to this policy',
+                'heading' => '16. Changes to this policy',
                 'paragraphs' => [
                     'This policy has a version and a date. When it changes materially, the new version is published here and the notice on the guest page asks for a new acceptance; organizers are informed in the dashboard or by e-mail.',
                 ],

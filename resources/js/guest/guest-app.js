@@ -18,11 +18,12 @@ import { createTranslator } from './i18n.js';
 import {
   deleteMyPhoto, fetchMyPhotos, statusClass, statusKey, withoutPhoto,
 } from './my-photos.js';
+import { checkLocation, locationMessage, passValid } from './location.js';
 
 const STAGE_STEPS = ['frame', 'filter', 'adjust', 'texts', 'preview'];
 const CONSENT_KEY = 'pp_consent_v1';
 // etapas a partir das quais o convidado pode abrir "Minhas fotos"
-const MINE_FROM = ['welcome', 'source', 'done'];
+const MINE_FROM = ['welcome', 'location', 'source', 'done'];
 
 /** Chave do consentimento lembrado no aparelho: muda com a versao do texto (novo aceite). */
 export function consentStorageKey(cfg) {
@@ -41,6 +42,17 @@ export function normalizePrivacy(raw = {}) {
   };
 }
 
+/**
+ * "Envio so no local do evento": presente so com a geofence em vigor no servidor.
+ * {url (mesma origem), passExpiresIn (s restantes de um passe ja obtido nesta sessao)} ou null.
+ */
+export function normalizeLocation(raw) {
+  const url = raw?.url;
+  if (typeof url !== 'string' || !url.startsWith('/') || url.startsWith('//')) return null;
+  const ttl = Number(raw.passExpiresIn);
+  return { url, passExpiresIn: Number.isFinite(ttl) && ttl > 0 ? ttl : 0 };
+}
+
 /** Normaliza o objeto do evento vindo do Laravel, com padroes seguros. */
 export function normalizeEventConfig(raw = {}) {
   const frames = Array.isArray(raw.frames) ? raw.frames : [];
@@ -52,6 +64,7 @@ export function normalizeEventConfig(raw = {}) {
     myPhotosUrl: String(raw.myPhotosUrl ?? ''),
     consentVersion: String(raw.consentVersion ?? ''),
     privacy: normalizePrivacy(raw.privacy),
+    location: normalizeLocation(raw.location),
     language: String(raw.language ?? 'pt_BR'),
     askGuestName: !!raw.askGuestName,
     csrfToken: raw.csrfToken ?? null,
@@ -91,6 +104,7 @@ export function guestApp(rawConfig, deps = {}) {
   const send = deps.uploadPhoto ?? uploadPhoto;
   const fetchImpl = deps.fetch ?? (typeof fetch !== 'undefined' ? fetch.bind(globalThis) : null);
   const ask = deps.confirm ?? ((msg) => (typeof window !== 'undefined' ? window.confirm(msg) : true));
+  const now = deps.now ?? (() => Date.now());
 
   // estado nao reativo
   let photo = null; // canvas com a foto ja orientada
@@ -137,6 +151,14 @@ export function guestApp(rawConfig, deps = {}) {
     doneMessage: '',
     ended: false,
 
+    // local do evento (geofence)
+    locationRequired: !!cfg.location,
+    passExpiresAt: cfg.location?.passExpiresIn ? now() + cfg.location.passExpiresIn * 1000 : 0,
+    locState: 'idle', // idle | checking | error
+    locCode: '',
+    locMessage: '',
+    locReturn: 'source',
+
     // "Minhas fotos"
     mine: [],
     mineLoading: false,
@@ -164,6 +186,7 @@ export function guestApp(rawConfig, deps = {}) {
     /* ---------------- getters/metodos usados pela marcacao (compativel com CSP) ---------------- */
 
     get isStep_welcome() { return this.step === 'welcome'; },
+    get isStep_location() { return this.step === 'location'; },
     get isStep_source() { return this.step === 'source'; },
     get isStep_frame() { return this.step === 'frame'; },
     get isStep_filter() { return this.step === 'filter'; },
@@ -226,9 +249,13 @@ export function guestApp(rawConfig, deps = {}) {
     get showStage() { return STAGE_STEPS.includes(this.step); },
     get needsTexts() { return this.guestFields.length > 0 || cfg.askGuestName; },
     get flow() {
-      return ['welcome', 'source', 'frame', 'filter', 'adjust', ...(this.needsTexts ? ['texts'] : []), 'preview'];
+      return [
+        'welcome', ...(this.locationRequired ? ['location'] : []), 'source',
+        'frame', 'filter', 'adjust', ...(this.needsTexts ? ['texts'] : []), 'preview',
+      ];
     },
-    get canGoBack() { return this.flow.indexOf(this.step) > 1 && !this.sending; },
+    // "Voltar" so depois da camera (boas-vindas e local nao fazem parte do vai-e-volta)
+    get canGoBack() { return this.flow.indexOf(this.step) > this.flow.indexOf('source') && !this.sending; },
     get orientationLabel() { return t(`orientation_${this.orientation}`); },
 
     accept() {
@@ -238,7 +265,7 @@ export function guestApp(rawConfig, deps = {}) {
       } catch {
         // modo privativo: segue sem lembrar
       }
-      this.go('source');
+      this.go(this.needsLocationCheck ? 'location' : 'source');
     },
 
     go(step) {
@@ -253,7 +280,53 @@ export function guestApp(rawConfig, deps = {}) {
 
     back() {
       const i = this.flow.indexOf(this.step);
-      if (i > 1) this.go(this.flow[i - 1]);
+      if (i > this.flow.indexOf('source')) this.go(this.flow[i - 1]);
+    },
+
+    /* ---------------- local do evento (geofence) ---------------- */
+
+    get needsLocationCheck() { return this.locationRequired && !passValid(this.passExpiresAt, now()); },
+    get locChecking() { return this.locState === 'checking'; },
+    get showLocAllow() { return this.locState === 'idle'; },
+    get showLocRetry() { return this.locState === 'error'; },
+    get showLocHelp() { return this.locState === 'error' && this.locCode === 'denied'; },
+    get hasLocMessage() { return !!this.locMessage && !this.locChecking; },
+
+    /** Volta ao passo de local (passe vencido/ausente) e depois segue para `returnTo`. */
+    askLocation(returnTo, expired = false) {
+      this.passExpiresAt = 0;
+      this.locReturn = returnTo;
+      this.locState = expired ? 'error' : 'idle';
+      this.locCode = expired ? 'expired' : '';
+      this.locMessage = expired ? t('geo_expired') : '';
+      this.go('location');
+    },
+
+    async requestLocation() {
+      if (this.locChecking || !cfg.location) return;
+      this.locState = 'checking';
+      this.locMessage = '';
+      const result = await checkLocation(cfg.location.url, {
+        fetchImpl, csrfToken: readCsrf(cfg), ...(deps.getPosition ? { getPositionImpl: deps.getPosition } : {}),
+      });
+      if (result.ok) {
+        // required=false: o servidor nao exige mais (conta perdeu o recurso) => fluxo normal
+        if (result.required === false) this.locationRequired = false;
+        this.passExpiresAt = result.expiresIn ? now() + result.expiresIn * 1000 : 0;
+        this.locState = 'idle';
+        this.locCode = '';
+        this.go(this.locReturn || 'source');
+        return;
+      }
+      if (result.code === 'ended') {
+        this.ended = true;
+        this.mineGone = true;
+        this.go('ended');
+        return;
+      }
+      this.locState = 'error';
+      this.locCode = result.code;
+      this.locMessage = locationMessage(result, t, lang);
     },
 
     onStep(step) {
@@ -597,6 +670,10 @@ export function guestApp(rawConfig, deps = {}) {
           this.ended = true;
           this.mineGone = true;
           this.go('ended');
+        } else if (err?.kind === 'location' && cfg.location) {
+          // passe de local ausente/vencido: confere de novo e volta para a previa (foto mantida)
+          this.locationRequired = true;
+          this.askLocation('preview', true);
         } else {
           this.error = this.messageFor(err);
         }
@@ -613,6 +690,7 @@ export function guestApp(rawConfig, deps = {}) {
         case 'invalid': return err.message && err.message !== 'invalid'
           ? t('error_invalid', { message: err.message }) : t('error_invalid_generic');
         case 'session': return t('error_session');
+        case 'location': return t('error_session');
         case 'server': return t('error_server');
         case 'network': return t('error_network');
         default: return t('error_generic');
@@ -626,7 +704,8 @@ export function guestApp(rawConfig, deps = {}) {
       this.filter = 'none';
       this.progress = 0;
       this.doneMessage = '';
-      this.go('source');
+      if (this.needsLocationCheck) this.askLocation('source', this.passExpiresAt > 0);
+      else this.go('source');
     },
 
     get welcomeText() { return cfg.welcome || t('welcome_default'); },
@@ -636,7 +715,9 @@ export function guestApp(rawConfig, deps = {}) {
     get consentText() {
       const p = cfg.privacy;
       const base = t('consent_text', { controller: p.controller || t('consent_controller_fallback') });
-      return p.retentionDays ? `${base} ${t('consent_retention', { days: p.retentionDays })}` : base;
+      const withRetention = p.retentionDays ? `${base} ${t('consent_retention', { days: p.retentionDays })}` : base;
+      // geofence ativa: o aviso informa o uso (nao armazenado) da localizacao
+      return this.locationRequired ? `${withRetention} ${t('consent_geo')}` : withRetention;
     },
     get privacyPolicyUrl() { return cfg.privacy.policyUrl || '#'; },
     get privacyRequestUrl() { return cfg.privacy.requestUrl || '#'; },

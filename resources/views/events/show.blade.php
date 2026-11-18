@@ -97,6 +97,17 @@
                 </div>
             @endif
         </dl>
+        @if ($event->geofence_enabled && $event->hasGeofenceLocation())
+            <p class="mt-4 border-t border-line pt-4 text-sm" data-geofence-summary>
+                @if ($event->geofenceActive())
+                    {{ __('app.geofence.summary', ['radius' => $event->geofence_radius_m]) }}
+                    · {{ $event->geofenceCoordinates() }}
+                    · <a class="font-bold text-brand-700 underline" href="{{ $event->geofenceMapUrl() }}" target="_blank" rel="noopener noreferrer">{{ __('app.geofence.view_map') }}</a>
+                @else
+                    <span class="text-muted">{{ __('app.geofence.summary_inactive') }}</span>
+                @endif
+            </p>
+        @endif
         @if ($event->welcome_message)
             <p class="mt-5 whitespace-pre-line border-t border-line pt-4 text-sm text-muted">{{ $event->welcome_message }}</p>
         @endif

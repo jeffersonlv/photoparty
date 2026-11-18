@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Guest\GuestEventController;
+use App\Http\Controllers\Guest\GuestLocationController;
 use App\Http\Controllers\Guest\GuestMyPhotosController;
 use App\Http\Controllers\Guest\GuestPhotoController;
 use App\Http\Controllers\MediaController;
@@ -32,6 +33,12 @@ Route::post('/e/{slug}/photos', [GuestPhotoController::class, 'store'])
     ->where('slug', $slug)
     ->middleware('throttle:guest-upload')
     ->name('guest.photos.store');
+
+// "Envio só no local do evento": confere a posição (nunca gravada) e dá o passe de local da sessão.
+Route::post('/e/{slug}/location', [GuestLocationController::class, 'store'])
+    ->where('slug', $slug)
+    ->middleware('throttle:guest-location')
+    ->name('guest.location');
 
 // "Minhas fotos" (LGPD/GDPR: acesso, portabilidade e eliminação): token do evento + cookie do
 // aparelho; foto de outro aparelho/evento => 404; só enquanto o evento está ao vivo.

@@ -31,5 +31,6 @@ return [
         'texts_html' => 'texts cannot contain HTML or control characters.',
         'consent' => 'To send the photo, confirm that you have read and agree to the privacy notice.',
         'consent_version' => 'The privacy notice has changed. Reload the page, read it and accept it again.',
+        'location_required' => 'Please confirm again that you are at the event venue to send the photo.',
     ],
 ];

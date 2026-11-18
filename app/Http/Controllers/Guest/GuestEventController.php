@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Account;
 use App\Models\Event;
 use App\Models\Frame;
+use App\Services\Geofence\LocationCheck;
 use App\Services\GuestDevice;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -22,8 +23,10 @@ class GuestEventController extends Controller
 {
     use ResolvesGuestEvent;
 
-    public function __construct(private readonly GuestDevice $device)
-    {
+    public function __construct(
+        private readonly GuestDevice $device,
+        private readonly LocationCheck $location,
+    ) {
     }
 
     public function show(Request $request, string $slug): Response
@@ -37,8 +40,8 @@ class GuestEventController extends Controller
             App::setLocale($event->language);
         }
 
-        // Identificação anônima do aparelho (cookie de 1 ano).
-        $this->device->resolveId($request);
+        // Identificação anônima do aparelho (cookie de 30 dias).
+        $deviceId = $this->device->resolveId($request);
 
         // Link válido, mas o organizador ainda não publicou: aviso em vez de 404.
         if ($status === EventStatus::Draft) {
@@ -64,7 +67,14 @@ class GuestEventController extends Controller
             ], 410);
         }
 
-        return response()->view('guest.show', ['event' => $this->payload($event, $this->guestToken($request))])
+        $payload = $this->payload($event, $this->guestToken($request));
+        // "Envio só no local do evento": só com a geofence em vigor (conta ainda com o recurso).
+        $payload['location'] = $event->geofenceActive() ? [
+            'url' => route('guest.location', ['slug' => $event->slug, 't' => $this->guestToken($request)], false),
+            'passExpiresIn' => $this->location->passRemaining($request->session(), $event, GuestDevice::hashId($deviceId)),
+        ] : null;
+
+        return response()->view('guest.show', ['event' => $payload])
             ->header('Cache-Control', 'no-store, private');
     }
 

@@ -53,6 +53,8 @@ class Event extends Model
         'status' => 'draft',
         'moderation' => 'pre',
         'language' => 'pt_BR',
+        'geofence_enabled' => false,
+        'geofence_radius_m' => 100,
     ];
 
     protected function casts(): array
@@ -67,6 +69,10 @@ class Event extends Model
             'purged_at' => 'datetime',
             'status' => EventStatus::class,
             'is_trial' => 'boolean',
+            'geofence_enabled' => 'boolean',
+            'geofence_lat' => 'float',
+            'geofence_lng' => 'float',
+            'geofence_radius_m' => 'integer',
             'ask_guest_name' => 'boolean',
             'max_photos_per_guest' => 'integer',
             'enabled_filters' => 'array',
@@ -121,6 +127,40 @@ class Event extends Model
         $this->frames()->syncWithoutDetaching(
             $frames->mapWithKeys(fn (Frame $frame, int $i) => [$frame->id => ['sort_order' => $i]])->all(),
         );
+    }
+
+    /**
+     * Geofence em vigor: ligada no evento, com local definido e a conta ainda com o recurso.
+     * Conta que perdeu o plano => false (o evento volta ao comportamento normal, sem apagar a configuração).
+     */
+    public function geofenceActive(): bool
+    {
+        if (! $this->geofence_enabled || $this->geofence_lat === null || $this->geofence_lng === null) {
+            return false;
+        }
+
+        return (bool) Account::query()->find($this->account_id)?->canUseGeofence();
+    }
+
+    public function hasGeofenceLocation(): bool
+    {
+        return $this->geofence_lat !== null && $this->geofence_lng !== null;
+    }
+
+    /** "lat, lng" com 6 casas (local do evento definido pelo organizador). */
+    public function geofenceCoordinates(): ?string
+    {
+        return $this->hasGeofenceLocation()
+            ? sprintf('%.6f, %.6f', $this->geofence_lat, $this->geofence_lng)
+            : null;
+    }
+
+    /** Link simples "ver no mapa" (sem embed nem chamada do servidor). */
+    public function geofenceMapUrl(): ?string
+    {
+        return $this->hasGeofenceLocation()
+            ? 'https://www.google.com/maps?q='.sprintf('%.6f,%.6f', $this->geofence_lat, $this->geofence_lng)
+            : null;
     }
 
     /**

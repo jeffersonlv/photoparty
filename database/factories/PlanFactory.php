@@ -23,6 +23,7 @@ class PlanFactory extends Factory
             'max_photos_per_event' => 1000,
             'retention_days' => 30,
             'allows_custom_frames' => true,
+            'allows_geofence' => false,
             'white_label' => false,
             'is_public' => true,
         ];

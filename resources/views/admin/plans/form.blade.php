@@ -46,6 +46,7 @@
             </div>
         </div>
         <label class="adm-check"><input type="checkbox" name="allows_custom_frames" value="1" @checked(old('allows_custom_frames', $plan->allows_custom_frames))> {{ __('admin.plans.custom_frames') }}</label>
+        <label class="adm-check"><input type="checkbox" name="allows_geofence" value="1" @checked(old('allows_geofence', $plan->allows_geofence))> {{ __('admin.plans.geofence') }}</label>
         <label class="adm-check"><input type="checkbox" name="white_label" value="1" @checked(old('white_label', $plan->white_label))> {{ __('admin.plans.white_label') }}</label>
         <label class="adm-check"><input type="checkbox" name="is_public" value="1" @checked(old('is_public', $plan->is_public))> {{ __('admin.plans.is_public') }}</label>
 

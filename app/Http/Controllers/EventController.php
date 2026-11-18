@@ -75,11 +75,12 @@ class EventController extends Controller
             return redirect()->route('events.index')->with('error', $error);
         }
 
-        $event = new Event($request->safe()->except('image_authorization'));
+        $event = new Event($request->safe()->except(EventRequest::NON_FILLABLE));
         // Declaração LGPD/GDPR aceita (validada como "accepted" no EventRequest).
         $event->declared_at = now();
         $event->is_trial = $account->isOnTrial();
         $event->enabled_filters = $request->validated('enabled_filters', []);
+        $event->forceFill($request->geofenceAttributes());
         $event->screen_settings = config('photoparty.screen_defaults');
         // account_id é preenchido pela trait BelongsToAccount (usuário autenticado).
         $event->save();
@@ -112,8 +113,9 @@ class EventController extends Controller
     {
         $this->authorize('update', $event);
 
-        $event->fill($request->safe()->except('image_authorization'));
+        $event->fill($request->safe()->except(EventRequest::NON_FILLABLE));
         $event->enabled_filters = $request->validated('enabled_filters', []);
+        $event->forceFill($request->geofenceAttributes());
         $this->scheduler->syncAfterUpdate($event->account, $event);
         $event->save();
 

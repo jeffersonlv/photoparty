@@ -20,6 +20,7 @@ return [
         'photos_per_event' => 'Up to :count photos per event',
         'retention' => 'Photos kept for :count days',
         'custom_frames' => 'Custom frames',
+        'geofence' => 'Uploads only at the venue (geolocation)',
         'white_label' => 'Your brand (white label)',
         'free' => 'Free',
     ],

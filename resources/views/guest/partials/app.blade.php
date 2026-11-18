@@ -45,6 +45,31 @@
         </div>
     </section>
 
+    {{-- 1b. local do evento (so com geofence ativa): a posicao so serve para conferir a distancia --}}
+    <section class="gp-step gp-step--full" data-step="location" x-show="isStep_location">
+        <div class="gp-scroll">
+            <div class="gp-geo">
+                <svg class="gp-geo-icon" viewBox="0 0 24 24" width="64" height="64" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" fill="currentColor" opacity=".18"/><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+                <h1 class="gp-title" tabindex="-1" data-step-heading>{{ __('guest.geo_title') }}</h1>
+                <p class="gp-lead">{{ __('guest.geo_explain') }}</p>
+                <p class="gp-small" role="status" x-show="locChecking">{{ __('guest.geo_checking') }}</p>
+                <p class="gp-alert gp-alert--sm" role="alert" x-show="hasLocMessage" x-text="locMessage"></p>
+                <div class="gp-card gp-geo-help" x-show="showLocHelp">
+                    <p class="gp-small gp-geo-help__title">{{ __('guest.geo_help_title') }}</p>
+                    <p class="gp-small">{{ __('guest.geo_help_ios') }}</p>
+                    <p class="gp-small">{{ __('guest.geo_help_android') }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="gp-bar">
+            <button type="button" class="gp-btn gp-btn--primary" x-on:click="requestLocation()" x-bind:disabled="locChecking">
+                <span x-show="showLocAllow">{{ __('guest.geo_allow') }}</span>
+                <span x-show="showLocRetry">{{ __('guest.geo_retry') }}</span>
+                <span x-show="locChecking">{{ __('guest.geo_checking') }}</span>
+            </button>
+        </div>
+    </section>
+
     {{-- 2. camera ou galeria --}}
     <section class="gp-step gp-step--full" data-step="source" x-show="isStep_source">
         <h1 class="gp-title gp-title--sm" tabindex="-1" data-step-heading>{{ __('guest.source_title') }}</h1>

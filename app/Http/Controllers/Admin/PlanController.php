@@ -83,6 +83,7 @@ class PlanController extends Controller
         $data['currency'] = strtoupper($data['currency']);
         $data['sort_order'] = (int) ($data['sort_order'] ?? 0);
         $data['allows_custom_frames'] = $request->boolean('allows_custom_frames');
+        $data['allows_geofence'] = $request->boolean('allows_geofence');
         $data['white_label'] = $request->boolean('white_label');
         $data['is_public'] = $request->boolean('is_public');
 

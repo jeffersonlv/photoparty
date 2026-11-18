@@ -2,6 +2,7 @@ import './bootstrap';
 // Build CSP do Alpine: não usa eval/new Function, compatível com "script-src 'self'".
 // Por isso a lógica fica em Alpine.data() e o HTML só referencia propriedades/métodos.
 import Alpine from '@alpinejs/csp';
+import { geofenceForm } from './organizer/geofence.js';
 
 Alpine.data('passwordToggle', () => ({
     show: false,
@@ -83,6 +84,9 @@ Alpine.data('copyField', () => ({
         return this.done ? this.$root.dataset.copied : '';
     },
 }));
+
+// Formulário do evento: local da geofence ("envio só no local do evento").
+Alpine.data('geofenceForm', geofenceForm);
 
 window.Alpine = Alpine;
 Alpine.start();

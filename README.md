@@ -104,7 +104,7 @@ O agendamento (`routes/console.php`) roda: `accounts:expire-trials`, `events:ref
 - Migrations de `plans`, `accounts`, `users` (ajustada), `events`, `frames`, `event_frame`, `photos`, `exports`, `audit_logs`; chaves públicas UUID v4.
 - Autenticação sem Breeze/Jetstream (Blade + Alpine): cadastro (nome, e-mail, senha forte, aceite de termos, honeypot, rate limit por IP, bloqueio de e-mail temporário), confirmação de e-mail obrigatória, login com throttle, logout, recuperação de senha.
 - Estados da conta (`trial`, `trial_ended`, `active`, `past_due`, `cancelled`) e middleware `account.can-manage-events`.
-- Middleware `SecurityHeaders` (CSP `self`, HSTS, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy: camera=(self)`).
+- Middleware `SecurityHeaders` (CSP `self`, HSTS, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy: camera=(self), geolocation=(self)`).
 - Interface em pt_BR e en (`lang/`), troca de idioma em `/locale/{pt_BR|en}`.
 
 **Eventos (módulo 2)**
@@ -160,6 +160,18 @@ Módulo 8. Rotas em `routes/frames.php`; código em `App\Http\Controllers\Frames
 - **Exclusão:** apaga a pasta da moldura e os vínculos com eventos; fotos já enviadas ficam com `frame_id` nulo.
 - **Auditoria:** `frame.uploaded`, `frame.events_updated`, `frame.deleted`.
 - **Admin:** a tela de molduras do admin continua só com os modelos do sistema (há teste garantindo que ela não mexe em moldura de organizador). Desativar uma moldura custom de qualquer conta pelo admin fica pendente; hoje dá para fazer `frames.is_active = false` direto no banco (o convidado deixa de vê-la e a tela do organizador mostra "Desativada pela administração").
+
+## Geolocalização (recurso de plano)
+
+"Envio só no local do evento": o convidado só envia fotos se o aparelho estiver dentro de um raio do local do evento.
+
+- **Regra de plano:** `plans.allows_geofence` (admin de planos; aparece como diferencial na seção de planos da home). Centralizada em `Account::canUseGeofence()` (conta `active` **e** plano com o recurso). Sem o recurso, o formulário do evento mostra a opção desabilitada com "Disponível nos planos com geolocalização" e o servidor ignora os campos enviados.
+- **Evento:** `events.geofence_enabled`, `geofence_lat`, `geofence_lng` (6 casas), `geofence_radius_m` (padrão 100, 50–2000, validado no servidor). O local é definido sem serviço de mapas: botão "Usar minha localização atual" (Geolocation API do organizador, mostra a precisão) ou campo para colar um link do Google Maps / "lat, lng", interpretado no servidor por `App\Services\Geofence\CoordinateParser` (`!3d…!4d…`, `?q=`, `query=`, `ll=`, `/@lat,lng,zoom`, `/place/lat,lng`, texto puro). Links curtos (`maps.app.goo.gl`, `goo.gl/maps`) não são resolvidos (exigiria chamada externa) e geram mensagem pedindo o link completo ou as coordenadas. O formulário e a página do evento mostram as coordenadas salvas e um link simples "ver no mapa".
+- **Convidado:** com a geofence em vigor (`Event::geofenceActive()`: ligada, com local e conta ainda com o recurso) a página ganha o passo "Confirme que você está no local" entre o consentimento e a câmera (mesmo layout de tela cheia, sem rolagem). O JS (`resources/js/guest/location.js`) chama `getCurrentPosition({enableHighAccuracy:true, timeout:15000, maximumAge:0})` e envia `latitude/longitude/accuracy/timestamp` para `POST /e/{slug}/location?t=…` (`guest.location`, throttle `guest-location`: 10/min por aparelho, 120/min por IP). O servidor (`LocationCheck`, haversine) recusa precisão > 150 m (`inaccurate`) e leitura com mais de 2 min (`stale`); aceita se `distância − min(precisão, 150) <= raio`; senão `outside` com a distância arredondada. Aceito → "passe de local" na sessão por 30 min, vinculado ao `device_hash` e ao evento. Permissão negada → instruções para iPhone/Android e "Tentar de novo".
+- **Upload:** com a geofence em vigor, `POST /e/{slug}/photos` sem passe válido (ausente, vencido, de outro evento ou de outro aparelho) → **403** `{code: "location_required"}`; o front volta ao passo de localização e, confirmado, retorna à prévia sem perder a foto. A foto grava só `photos.location_verified` (bool). Conta que perdeu o plano: o evento volta ao comportamento normal (a configuração fica guardada).
+- **Privacidade (LGPD/GDPR):** coordenadas do convidado **nunca** são gravadas em banco, log ou sessão (há teste que varre as tabelas, o log e a sessão). O aviso de consentimento ganha uma frase sobre a localização só quando a geofence está ativa; a política de privacidade (pt_BR/en) tem a seção 15 "Geolocalização" (finalidade, não armazenamento, base legal consentimento). Versões: `consent_version` e `legal_version` = `2026-11-18.2`.
+- **Segurança:** `Permissions-Policy: geolocation=(self)`. **Limitação:** as coordenadas vêm do aparelho e podem ser falsificadas por quem souber (extensões, modo desenvolvedor, apps de GPS falso). As mitigações — precisão máxima, leitura recente, passe curto e conferência no servidor — reduzem o abuso casual, não o eliminam.
+- **Testes:** `tests/Feature/Geofence/*` (Pest) e `tests/js/location.test.js` (vitest). Capturas do passo do convidado (360×640 e 390×844: pedindo permissão, dentro do raio, fora do raio, imprecisa, negada) verificadas sem rolagem.
 
 ## Privacidade (LGPD/GDPR)
 

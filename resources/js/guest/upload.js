@@ -4,7 +4,7 @@ export const MAX_ATTEMPTS = 3;
 const BASE_DELAY_MS = 800;
 const MAX_DELAY_MS = 8000;
 
-/** Erro de upload com `kind`: ended | rate | invalid | session | server | network | aborted. */
+/** Erro de upload com `kind`: ended | rate | invalid | session | location | server | network | aborted. */
 export class UploadError extends Error {
   constructor(kind, { status = 0, errors = null, message = kind, retryAfter = null } = {}) {
     super(message);
@@ -34,6 +34,15 @@ export function classifyStatus(status) {
   if (status === 419 || status === 401 || status === 403) return { ok: false, retry: false, kind: 'session' };
   if (status === 0 || status >= 500) return { ok: false, retry: true, kind: status === 0 ? 'network' : 'server' };
   return { ok: false, retry: false, kind: 'server' };
+}
+
+/**
+ * Tipo do erro considerando o corpo: 403 com code "location_required" = falta o passe de local
+ * (geofence) => o app volta ao passo de localizacao em vez de pedir para recarregar.
+ */
+export function errorKind(status, body) {
+  if (status === 403 && body?.code === 'location_required') return 'location';
+  return classifyStatus(status).kind;
 }
 
 /** Monta o multipart do contrato com o backend. */
@@ -123,7 +132,7 @@ export async function uploadPhoto(url, payload, {
       onProgress?.(1);
       return res.body;
     }
-    last = new UploadError(cls.kind, {
+    last = new UploadError(errorKind(res.status, res.body), {
       status: res.status,
       errors: res.body?.errors ?? null,
       message: firstValidationMessage(res.body) ?? cls.kind,

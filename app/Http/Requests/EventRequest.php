@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Account;
 use App\Models\Event;
+use App\Services\Geofence\CoordinateParser;
+use App\Services\Geofence\InvalidCoordinates;
 use App\Services\EventScheduler;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
@@ -15,6 +18,12 @@ use Illuminate\Validation\Validator;
  */
 class EventRequest extends FormRequest
 {
+    /** Campos validados que não vão para fill() (declaração e geolocalização têm tratamento próprio). */
+    public const NON_FILLABLE = ['image_authorization', 'geofence_enabled', 'geofence_radius_m', 'geofence_lat', 'geofence_lng', 'geofence_location'];
+
+    /** Local resolvido no after() (campo colado ou botão "usar minha localização"). */
+    private ?array $geofencePoint = null;
+
     public function authorize(): bool
     {
         return true;
@@ -24,6 +33,7 @@ class EventRequest extends FormRequest
     {
         $this->merge([
             'ask_guest_name' => $this->boolean('ask_guest_name'),
+            'geofence_enabled' => $this->boolean('geofence_enabled'),
         ]);
     }
 
@@ -45,7 +55,56 @@ class EventRequest extends FormRequest
             'enabled_filters' => ['nullable', 'array'],
             'enabled_filters.*' => ['string', Rule::in(config('photoparty.filters'))],
             'language' => ['required', Rule::in(config('photoparty.locales'))],
+            // Geolocalização: só para conta com o recurso; sem ele os campos são ignorados.
+            ...($this->geofenceAllowed() ? [
+                'geofence_enabled' => ['boolean'],
+                'geofence_radius_m' => [
+                    'nullable', 'integer',
+                    'min:'.(int) config('photoparty.geofence.radius_min'),
+                    'max:'.(int) config('photoparty.geofence.radius_max'),
+                ],
+                'geofence_lat' => ['nullable', 'numeric', 'between:-90,90'],
+                'geofence_lng' => ['nullable', 'numeric', 'between:-180,180'],
+                'geofence_location' => ['nullable', 'string', 'max:2000'],
+            ] : []),
         ];
+    }
+
+    public function geofenceAllowed(): bool
+    {
+        return (bool) $this->eventAccount()?->canUseGeofence();
+    }
+
+    /**
+     * Atributos de geofence a gravar no evento. Conta sem o recurso => [] (o servidor ignora
+     * o que vier do formulário e não mexe na configuração existente).
+     *
+     * @return array<string, mixed>
+     */
+    public function geofenceAttributes(): array
+    {
+        if (! $this->geofenceAllowed()) {
+            return [];
+        }
+
+        $attributes = [
+            'geofence_enabled' => (bool) $this->validated('geofence_enabled', false),
+            'geofence_radius_m' => (int) ($this->validated('geofence_radius_m') ?? config('photoparty.geofence.radius_default')),
+        ];
+
+        if ($this->geofencePoint !== null) {
+            $attributes['geofence_lat'] = $this->geofencePoint['lat'];
+            $attributes['geofence_lng'] = $this->geofencePoint['lng'];
+        }
+
+        return $attributes;
+    }
+
+    private function eventAccount(): ?Account
+    {
+        $event = $this->route('event');
+
+        return $event instanceof Event ? $event->account : $this->user()?->account;
     }
 
     public function attributes(): array
@@ -60,6 +119,10 @@ class EventRequest extends FormRequest
             'max_photos_per_guest' => __('app.fields.max_photos_per_guest'),
             'enabled_filters' => __('app.fields.enabled_filters'),
             'language' => __('app.fields.language'),
+            'geofence_radius_m' => __('app.geofence.radius'),
+            'geofence_lat' => __('app.geofence.latitude'),
+            'geofence_lng' => __('app.geofence.longitude'),
+            'geofence_location' => __('app.geofence.paste_label'),
         ];
     }
 
@@ -87,6 +150,42 @@ class EventRequest extends FormRequest
             foreach ($errors as $field => $message) {
                 $validator->errors()->add($field, $message);
             }
+
+            $this->resolveGeofencePoint($validator);
         });
+    }
+
+    /**
+     * Local do evento: o texto colado (link do Google Maps ou "lat, lng") tem prioridade; senão,
+     * latitude/longitude do botão "Usar minha localização atual". Interpretado só no servidor,
+     * sem chamadas externas (link curto => pede o link completo ou as coordenadas).
+     */
+    private function resolveGeofencePoint(Validator $validator): void
+    {
+        if (! $this->geofenceAllowed()) {
+            return;
+        }
+
+        $parser = app(CoordinateParser::class);
+        $pasted = trim((string) $this->input('geofence_location', ''));
+
+        try {
+            if ($pasted !== '') {
+                $this->geofencePoint = $parser->parse($pasted);
+            } elseif (filled($this->input('geofence_lat')) && filled($this->input('geofence_lng'))) {
+                $this->geofencePoint = $parser->coordinates($this->input('geofence_lat'), $this->input('geofence_lng'));
+            }
+        } catch (InvalidCoordinates $e) {
+            $validator->errors()->add('geofence_location', __('app.geofence.errors.'.$e->reason));
+
+            return;
+        }
+
+        $event = $this->route('event');
+        $hasSaved = $event instanceof Event && $event->hasGeofenceLocation();
+
+        if ($this->boolean('geofence_enabled') && $this->geofencePoint === null && ! $hasSaved) {
+            $validator->errors()->add('geofence_location', __('app.geofence.errors.required'));
+        }
     }
 }

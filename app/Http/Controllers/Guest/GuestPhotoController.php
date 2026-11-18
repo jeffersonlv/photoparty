@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Frame;
 use App\Models\Photo;
+use App\Services\Geofence\LocationCheck;
 use App\Services\GuestDevice;
 use App\Services\Photos\GuestPhotoUploader;
 use App\Services\Photos\ImageSanitizer;
@@ -38,6 +39,7 @@ class GuestPhotoController extends Controller
         private readonly GuestDevice $device,
         private readonly ImageSanitizer $sanitizer,
         private readonly GuestPhotoUploader $uploader,
+        private readonly LocationCheck $location,
     ) {
     }
 
@@ -51,7 +53,21 @@ class GuestPhotoController extends Controller
         }
 
         $deviceHash = $this->device->hash($request);
+
+        // "Envio só no local do evento": exige o passe de local (sessão, aparelho e evento, 30 min).
+        // Conta que perdeu o recurso => geofenceActive() false e nada muda.
+        $locationVerified = false;
+
+        if ($event->geofenceActive()) {
+            if (! $this->location->hasValidPass($request->session(), $event, $deviceHash)) {
+                throw UploadRejected::locationRequired();
+            }
+
+            $locationVerified = true;
+        }
+
         [$frame, $data] = $this->validated($request, $event);
+        $data['location_verified'] = $locationVerified;
 
         try {
             $photo = $this->uploader->store($event, $frame, $request->file('photo'), $request->file('thumb'), $data, $deviceHash);

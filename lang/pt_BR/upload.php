@@ -31,5 +31,6 @@ return [
         'texts_html' => 'os textos não podem conter HTML nem caracteres especiais de controle.',
         'consent' => 'Para enviar a foto, marque que você leu e concorda com o aviso de privacidade.',
         'consent_version' => 'O aviso de privacidade foi atualizado. Recarregue a página, leia e aceite de novo.',
+        'location_required' => 'Confirme de novo que você está no local do evento para enviar a foto.',
     ],
 ];

@@ -82,6 +82,16 @@ class Account extends Model
     }
 
     /**
+     * Regra única de "envio só no local do evento" (geolocalização): conta active com plano
+     * que tem allows_geofence. Sem isso o formulário mostra a opção desabilitada e o convidado
+     * não passa pela conferência de local (o evento volta ao comportamento normal).
+     */
+    public function canUseGeofence(): bool
+    {
+        return $this->isActive() && (bool) $this->plan?->allows_geofence;
+    }
+
+    /**
      * Teste ainda não usado: conta em trial cujo evento de teste não foi publicado.
      */
     public function hasTrialAvailable(): bool

@@ -41,6 +41,7 @@ class Photo extends Model
             'bytes' => 'integer',
             'approved_at' => 'datetime',
             'consented_at' => 'datetime',
+            'location_verified' => 'boolean',
         ];
     }
 

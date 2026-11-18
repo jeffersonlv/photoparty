@@ -11,7 +11,7 @@ use RuntimeException;
  */
 class UploadRejected extends RuntimeException
 {
-    public function __construct(public readonly int $status, public readonly string $key)
+    public function __construct(public readonly int $status, public readonly string $key, public readonly ?string $errorCode = null)
     {
         parent::__construct($key);
     }
@@ -19,6 +19,14 @@ class UploadRejected extends RuntimeException
     public static function ended(): self
     {
         return new self(410, 'upload.errors.event_not_live');
+    }
+
+    /**
+     * Geofence em vigor e sem passe de local válido (ou vencido): o front volta ao passo de localização.
+     */
+    public static function locationRequired(): self
+    {
+        return new self(403, 'upload.errors.location_required', 'location_required');
     }
 
     public static function eventLimit(): self
@@ -45,6 +53,12 @@ class UploadRejected extends RuntimeException
 
     public function render(): JsonResponse
     {
-        return response()->json(['message' => __($this->key)], $this->status);
+        $body = ['message' => __($this->key)];
+
+        if ($this->errorCode !== null) {
+            $body['code'] = $this->errorCode;
+        }
+
+        return response()->json($body, $this->status);
     }
 }

@@ -25,7 +25,7 @@ class SecurityHeaders
         if (! $headers->has('Referrer-Policy')) {
             $headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         }
-        $headers->set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=(), payment=(), usb=()');
+        $headers->set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=(self), payment=(), usb=()');
         $headers->set('Cross-Origin-Opener-Policy', 'same-origin');
         $headers->remove('X-Powered-By');
 

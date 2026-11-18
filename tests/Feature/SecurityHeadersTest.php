@@ -16,7 +16,9 @@ it('sends the security headers', function (string $uri) {
         ->and($csp)->toContain("object-src 'none'")
         ->and($csp)->not->toContain('unsafe-inline')
         ->and($csp)->not->toContain('unsafe-eval')
-        ->and($response->headers->get('Permissions-Policy'))->toContain('camera=(self)');
+        ->and($response->headers->get('Permissions-Policy'))->toContain('camera=(self)')
+        ->and($response->headers->get('Permissions-Policy'))->toContain('geolocation=(self)')
+        ->and($response->headers->get('Permissions-Policy'))->not->toContain('geolocation=()');
 })->with([
     'login page' => '/login',
     'not found page' => '/esta-pagina-nao-existe',

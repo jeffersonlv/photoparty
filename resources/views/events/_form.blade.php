@@ -87,6 +87,88 @@
         <x-input-error name="language" />
     </div>
 
+    {{-- Geolocalização: "envio só no local do evento" (recurso de plano; servidor decide). --}}
+    @php
+        $geoAllowed = $account->canUseGeofence();
+        $geoCfg = config('photoparty.geofence');
+    @endphp
+    <fieldset class="rounded-xl border border-line p-4" data-geofence
+              @if ($geoAllowed)
+                  x-data="geofenceForm"
+                  data-locating="{{ __('app.geofence.locating') }}"
+                  data-located="{{ __('app.geofence.located') }}"
+                  data-denied="{{ __('app.geofence.locate_denied') }}"
+                  data-failed="{{ __('app.geofence.locate_failed') }}"
+                  data-unsupported="{{ __('app.geofence.locate_unsupported') }}"
+              @else
+                  disabled aria-describedby="geofence-unavailable"
+              @endif>
+        <legend class="field-label px-1">{{ __('app.geofence.title') }}</legend>
+
+        @unless ($geoAllowed)
+            <p id="geofence-unavailable" class="alert alert-warn mt-2" role="note">{{ __('app.geofence.unavailable') }}</p>
+        @endunless
+
+        <label class="choice mt-2">
+            <input type="hidden" name="geofence_enabled" value="0">
+            <input type="checkbox" name="geofence_enabled" value="1" class="checkbox"
+                   @checked($geoAllowed && old('geofence_enabled', $event->geofence_enabled)) @disabled(! $geoAllowed)>
+            {{ __('app.geofence.toggle') }}
+        </label>
+        <p class="mt-1 text-xs text-muted">{{ __('app.geofence.hint') }}</p>
+
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+                <x-label for="geofence_radius_m">{{ ucfirst(__('app.geofence.radius')) }}</x-label>
+                <input id="geofence_radius_m" name="geofence_radius_m" type="number" class="input"
+                       min="{{ $geoCfg['radius_min'] }}" max="{{ $geoCfg['radius_max'] }}" step="1"
+                       value="{{ old('geofence_radius_m', $event->geofence_radius_m ?? $geoCfg['radius_default']) }}" @disabled(! $geoAllowed)>
+                <p class="mt-1 text-xs text-muted">{{ __('app.geofence.radius_hint', ['min' => $geoCfg['radius_min'], 'max' => $geoCfg['radius_max'], 'default' => $geoCfg['radius_default']]) }}</p>
+                <x-input-error name="geofence_radius_m" />
+            </div>
+            <div class="sm:pt-7">
+                @if ($geoAllowed)
+                    <button type="button" class="btn btn-secondary btn-block" x-on:click="locate()" x-bind:disabled="busy">{{ __('app.geofence.use_current') }}</button>
+                    <p class="mt-1 text-xs text-muted" role="status" aria-live="polite" x-text="message"></p>
+                @else
+                    <button type="button" class="btn btn-secondary btn-block" disabled>{{ __('app.geofence.use_current') }}</button>
+                @endif
+            </div>
+        </div>
+
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+                <x-label for="geofence_lat">{{ ucfirst(__('app.geofence.latitude')) }}</x-label>
+                <input id="geofence_lat" name="geofence_lat" type="text" inputmode="decimal" class="input" readonly x-ref="lat"
+                       value="{{ old('geofence_lat', $event->geofence_lat !== null ? sprintf('%.6f', $event->geofence_lat) : '') }}" @disabled(! $geoAllowed)>
+                <x-input-error name="geofence_lat" />
+            </div>
+            <div>
+                <x-label for="geofence_lng">{{ ucfirst(__('app.geofence.longitude')) }}</x-label>
+                <input id="geofence_lng" name="geofence_lng" type="text" inputmode="decimal" class="input" readonly x-ref="lng"
+                       value="{{ old('geofence_lng', $event->geofence_lng !== null ? sprintf('%.6f', $event->geofence_lng) : '') }}" @disabled(! $geoAllowed)>
+                <x-input-error name="geofence_lng" />
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <x-label for="geofence_location">{{ ucfirst(__('app.geofence.paste_label')) }}</x-label>
+            <input id="geofence_location" name="geofence_location" type="text" class="input" maxlength="2000" autocomplete="off" x-ref="paste"
+                   value="{{ old('geofence_location') }}" @disabled(! $geoAllowed)>
+            <p class="mt-1 text-xs text-muted">{{ __('app.geofence.paste_hint') }}</p>
+            <x-input-error name="geofence_location" />
+        </div>
+
+        <p class="mt-3 text-sm" data-geofence-saved>
+            @if ($event->hasGeofenceLocation())
+                {{ __('app.geofence.saved', ['coordinates' => $event->geofenceCoordinates()]) }}
+                · <a class="font-bold text-brand-700 underline" href="{{ $event->geofenceMapUrl() }}" target="_blank" rel="noopener noreferrer">{{ __('app.geofence.view_map') }}</a>
+            @else
+                <span class="text-muted">{{ __('app.geofence.not_set') }}</span>
+            @endif
+        </p>
+    </fieldset>
+
     {{-- Molduras: módulo 8. --}}
 </div>
 

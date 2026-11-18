@@ -27,6 +27,17 @@ class GuestMediaServiceProvider extends ServiceProvider
             return $limits;
         });
 
+        // Conferência de local (geofence): poucas tentativas por aparelho; teto por IP (rede do salão).
+        RateLimiter::for('guest-location', function (Request $request) {
+            $limits = [Limit::perMinute(120)->by('guest-location-ip|'.$request->ip())];
+
+            if ($device = GuestDevice::limiterKey($request)) {
+                $limits[] = Limit::perMinute(10)->by('guest-location-device|'.$device);
+            }
+
+            return $limits;
+        });
+
         // "Minhas fotos" (lista, miniaturas, download, exclusão): por aparelho e teto por IP.
         RateLimiter::for('guest-mine', function (Request $request) {
             $limits = [Limit::perMinute(600)->by('guest-mine-ip|'.$request->ip())];

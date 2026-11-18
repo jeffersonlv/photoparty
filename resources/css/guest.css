@@ -202,6 +202,13 @@ html, .gp-body { height: 100%; }
 .gp-alert { flex: none; margin: 0; padding: 12px 14px; border-radius: 14px; background: rgba(255, 107, 107, 0.14); border: 1px solid rgba(255, 107, 107, 0.5); color: #ffd6d6; font-size: 0.92rem; }
 .gp-alert--sm { padding: 8px 12px; font-size: 0.85rem; }
 .gp-check-icon { color: var(--gp-ok); flex: none; }
+
+/* ---------------------------------------------------------------- local do evento (geofence) */
+/* margin:auto centraliza quando sobra espaco e deixa rolar (por dentro) quando falta */
+.gp-geo { margin: auto 0; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.gp-geo-icon { color: var(--gp-accent); flex: none; }
+.gp-geo-help { text-align: left; align-self: stretch; }
+.gp-geo-help__title { color: var(--gp-text); font-weight: 700; }
 .gp-noscript { margin: 0; padding: 16px; background: var(--gp-danger); color: #111; text-align: center; }
 
 /* ---------------------------------------------------------------- minhas fotos */

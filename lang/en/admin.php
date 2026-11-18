@@ -81,6 +81,7 @@ return [
         'max_photos' => 'Photos per event',
         'retention' => 'Retention (days)',
         'custom_frames' => 'Allows custom frames',
+        'geofence' => 'Allows geolocation (uploads only at the venue)',
         'white_label' => 'White label',
         'is_public' => 'Public (shown on the home page)',
         'sort_order' => 'Order',

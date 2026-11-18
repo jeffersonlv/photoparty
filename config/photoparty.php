@@ -83,8 +83,9 @@ return [
     'privacy_contact_email' => (string) env('PHOTOPARTY_PRIVACY_CONTACT_EMAIL', ''),
 
     'privacy' => [
-        'consent_version' => '2026-11-18',
-        'legal_version' => '2026-11-18',
+        // 2026-11-18.2: aviso e políticas ganharam a parte de geolocalização (envio só no local).
+        'consent_version' => '2026-11-18.2',
+        'legal_version' => '2026-11-18.2',
         'legal_reviewed' => (bool) env('PHOTOPARTY_LEGAL_REVIEWED', false),
         // Cookie anônimo do aparelho do convidado (pp_device).
         'device_cookie_days' => 30,
@@ -96,6 +97,28 @@ return [
         'response_days' => ['lgpd' => 15, 'gdpr' => 30],
         // Formulário público de solicitação: envios por hora por IP.
         'requests_per_hour' => 5,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Geolocalização: "envio só no local do evento" (recurso de plano)
+    |--------------------------------------------------------------------------
+    |
+    | Account::canUseGeofence() = conta active e plano com allows_geofence. Raio em metros.
+    | A posição do convidado só é usada para calcular a distância no servidor; nunca é gravada
+    | (banco, log ou sessão). Aceita se distância - min(precisão, max_accuracy_m) <= raio.
+    | Recusa precisão pior que max_accuracy_m e leitura com mais de max_age_seconds.
+    | Aceito => "passe de local" na sessão por pass_minutes (vinculado ao aparelho e ao evento).
+    |
+    */
+
+    'geofence' => [
+        'radius_default' => 100,
+        'radius_min' => 50,
+        'radius_max' => 2000,
+        'max_accuracy_m' => 150,
+        'max_age_seconds' => 120,
+        'pass_minutes' => 30,
     ],
 
     /*

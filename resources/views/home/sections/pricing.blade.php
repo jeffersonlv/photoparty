@@ -24,6 +24,9 @@
                         @if ($plan->allows_custom_frames)
                             <li>{{ __('home.pricing.custom_frames') }}</li>
                         @endif
+                        @if ($plan->allows_geofence)
+                            <li>{{ __('home.pricing.geofence') }}</li>
+                        @endif
                         @if ($plan->white_label)
                             <li>{{ __('home.pricing.white_label') }}</li>
                         @endif

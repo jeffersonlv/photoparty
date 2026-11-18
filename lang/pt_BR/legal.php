@@ -53,7 +53,7 @@ return [
                 'id' => 'dados',
                 'heading' => '3. Dados que tratamos',
                 'items' => [
-                    'Convidados: a foto enviada (já composta com moldura e filtro), a miniatura, o nome e os textos opcionais que o convidado digitar na moldura, a data e hora do envio, a versão do aviso aceito e um identificador anônimo do aparelho (hash de um cookie aleatório). Não pedimos e-mail, telefone ou conta. Os metadados das imagens (EXIF, inclusive localização GPS) são removidos no servidor.',
+                    'Convidados: a foto enviada (já composta com moldura e filtro), a miniatura, o nome e os textos opcionais que o convidado digitar na moldura, a data e hora do envio, a versão do aviso aceito e um identificador anônimo do aparelho (hash de um cookie aleatório). Não pedimos e-mail, telefone ou conta. Os metadados das imagens (EXIF, inclusive localização GPS) são removidos no servidor. Em eventos com envio só no local, a localização do aparelho é usada apenas para conferir a distância e não é guardada (seção 15).',
                     'Organizadores: nome, e-mail, senha (guardada apenas como hash), dados da conta e dos eventos, molduras enviadas e registros de auditoria de ações no painel (inclusive endereço IP).',
                     'Solicitações de titulares: link do evento, e-mail de contato e a descrição do pedido.',
                     'Registros técnicos: endereço IP e navegador na sessão e nos registros de segurança, pelos prazos da seção 7.',
@@ -155,8 +155,18 @@ return [
                 'cookies' => true,
             ],
             [
+                'id' => 'geolocalizacao',
+                'heading' => '15. Geolocalização (envio só no local do evento)',
+                'paragraphs' => [
+                    'Alguns organizadores ativam, nos planos que oferecem o recurso, a opção de aceitar fotos só de quem está no local do evento. Nesses eventos, antes da câmera, a página do convidado pede permissão para usar a localização do aparelho.',
+                    'Finalidade: exclusivamente conferir se o aparelho está dentro do raio definido pelo organizador. Base legal: consentimento (LGPD art. 7º, I; GDPR art. 6(1)(a)), dado ao tocar em "Permitir localização" e na permissão do navegador. Sem a permissão, não é possível enviar fotos para esse evento; nos demais eventos nada muda.',
+                    'Não armazenamos a localização: latitude, longitude e precisão são usadas apenas no cálculo da distância, no momento do envio, e descartadas em seguida. Elas não vão para o banco de dados, para os registros (logs) nem para o organizador. Fica guardado somente, na sessão do navegador, um "passe" de 30 minutos sem coordenadas e, na foto, a indicação de que o local foi conferido (sim/não).',
+                    'Você pode negar ou retirar a permissão de localização a qualquer momento nas configurações do navegador ou do aparelho.',
+                ],
+            ],
+            [
                 'id' => 'alteracoes',
-                'heading' => '15. Alterações desta política',
+                'heading' => '16. Alterações desta política',
                 'paragraphs' => [
                     'Esta política tem versão e data. Quando ela mudar de forma relevante, a nova versão é publicada aqui e o aviso da página do convidado passa a pedir um novo aceite; organizadores são avisados pelo painel ou por e-mail.',
                 ],

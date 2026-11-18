@@ -32,7 +32,7 @@ class GuestPhotoUploader
     }
 
     /**
-     * @param  array{orientation:string, filter:?string, guest_name:?string, guest_texts:array<string,string>, consent_version:string}  $data
+     * @param  array{orientation:string, filter:?string, guest_name:?string, guest_texts:array<string,string>, consent_version:string, location_verified?:bool}  $data
      */
     public function store(
         Event $event,
@@ -100,6 +100,8 @@ class GuestPhotoUploader
                 // Prova do consentimento (LGPD art. 8º §2º / GDPR art. 7(1)).
                 $photo->consent_version = $data['consent_version'];
                 $photo->consented_at = now();
+                // Só o resultado da conferência de local; coordenadas nunca são gravadas.
+                $photo->location_verified = (bool) ($data['location_verified'] ?? false);
                 $photo->original_path = $paths['original'];
                 $photo->thumb_path = $paths['thumb'];
                 $photo->bytes = strlen($original) + strlen($thumb);

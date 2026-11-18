@@ -81,6 +81,7 @@ return [
         'max_photos' => 'Fotos por evento',
         'retention' => 'Retenção (dias)',
         'custom_frames' => 'Permite molduras próprias',
+        'geofence' => 'Permite geolocalização (envio só no local do evento)',
         'white_label' => 'White label',
         'is_public' => 'Público (aparece na página inicial)',
         'sort_order' => 'Ordem',

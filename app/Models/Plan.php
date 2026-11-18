@@ -22,6 +22,7 @@ class Plan extends Model
         'max_photos_per_event',
         'retention_days',
         'allows_custom_frames',
+        'allows_geofence',
         'white_label',
         'is_public',
         'sort_order',
@@ -35,6 +36,7 @@ class Plan extends Model
             'max_photos_per_event' => 'integer',
             'retention_days' => 'integer',
             'allows_custom_frames' => 'boolean',
+            'allows_geofence' => 'boolean',
             'white_label' => 'boolean',
             'is_public' => 'boolean',
         ];

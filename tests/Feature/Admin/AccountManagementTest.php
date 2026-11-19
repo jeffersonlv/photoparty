@@ -12,7 +12,7 @@ beforeEach(function () {
     $this->admin = User::factory()->admin()->create();
 });
 
-it('lists all accounts with search and status filter', function () {
+it('lists all accounts with text search', function () {
     $a = Account::factory()->create(['name' => 'Estudio Alfa']);
     $b = Account::factory()->active()->create(['name' => 'Cabine Beta']);
     User::factory()->for($b)->create(['email' => 'beta-owner@example.test']);
@@ -26,10 +26,6 @@ it('lists all accounts with search and status filter', function () {
     $this->actingAs($this->admin)->get('/admin/accounts?q=beta-owner')
         ->assertOk()->assertSee('Cabine Beta')->assertDontSee('Estudio Alfa');
 
-    $this->actingAs($this->admin)->get('/admin/accounts?status=active')
-        ->assertOk()->assertSee('Cabine Beta')->assertDontSee('Estudio Alfa');
-
-    $this->actingAs($this->admin)->get('/admin/accounts?status=bogus')->assertSessionHasErrors('status');
 });
 
 it('shows account usage across all tenants', function () {

@@ -1,54 +1,44 @@
 <x-admin.layout :title="__('admin.accounts.title')">
     <h1>{{ __('admin.accounts.title') }}</h1>
 
-    @php($activeFilters = count(array_filter($filters ?? [], fn ($v) => $v !== null && $v !== '')))
-    <div class="adm-filterbox" x-data="disclosure">
-        <button type="button" class="adm-btn adm-filterbox__toggle" aria-controls="adm-filters" aria-expanded="false" x-on:click="toggle" x-bind:aria-expanded="expanded">
-            {{ __('app.nav.filters') }}@if ($activeFilters > 0) <span class="adm-badge adm-badge--trial">{{ $activeFilters }}</span>@endif
-        </button>
-    <form id="adm-filters" method="GET" class="adm-filters" x-bind:data-open="expanded">
+    <form method="GET" class="adm-inline adm-search" role="search">
         <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="{{ __('admin.accounts.search_placeholder') }}" maxlength="100" aria-label="{{ __('admin.common.search') }}">
-        <select name="status" aria-label="{{ __('admin.accounts.status') }}">
-            <option value="">{{ __('admin.accounts.all_statuses') }}</option>
-            @foreach ($statuses as $status)
-                <option value="{{ $status->value }}" @selected(($filters['status'] ?? null) === $status->value)>{{ $status->label() }}</option>
-            @endforeach
-        </select>
-        <button type="submit" class="adm-btn">{{ __('admin.common.filter') }}</button>
+        <button type="submit" class="adm-btn">{{ __('admin.common.search') }}</button>
         <a href="{{ route('admin.accounts.index') }}" class="adm-btn adm-btn--ghost">{{ __('admin.common.clear') }}</a>
     </form>
-    </div>
 
-    <div class="adm-table-wrap">
-        <table class="adm-table adm-table--stack">
-            <thead>
-                <tr>
-                    <th>{{ __('admin.accounts.name') }}</th>
-                    <th>{{ __('admin.accounts.status') }}</th>
-                    <th>{{ __('admin.accounts.plan') }}</th>
-                    <th>{{ __('admin.accounts.events') }}</th>
-                    <th>{{ __('admin.accounts.users') }}</th>
-                    <th>{{ __('admin.accounts.created') }}</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($accounts as $account)
-                    <tr>
-                        <td data-label="{{ __('admin.accounts.name') }}"><a href="{{ route('admin.accounts.show', $account) }}">{{ $account->name }}</a></td>
-                        <td data-label="{{ __('admin.accounts.status') }}"><span class="adm-badge adm-badge--{{ $account->status->value }}">{{ $account->status->label() }}</span></td>
-                        <td data-label="{{ __('admin.accounts.plan') }}">{{ $account->plan?->displayName() ?? __('admin.accounts.no_plan') }}</td>
-                        <td data-label="{{ __('admin.accounts.events') }}">{{ $account->events_count }}</td>
-                        <td data-label="{{ __('admin.accounts.users') }}">{{ $account->users_count }}</td>
-                        <td data-label="{{ __('admin.accounts.created') }}">{{ $account->created_at?->format('d/m/Y') }}</td>
-                        <td class="adm-right"><a class="adm-btn adm-btn--sm" href="{{ route('admin.accounts.show', $account) }}">{{ __('admin.common.details') }}</a></td>
-                    </tr>
-                @empty
-                    <tr><td colspan="7" class="adm-empty">{{ __('admin.common.empty') }}</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+    <details class="adm-customize" @if ($errors->any()) open @endif>
+        <summary class="adm-btn">{{ __('admin.accounts.customize') }}</summary>
+        <form method="POST" action="{{ route('admin.accounts.settings') }}" class="adm-customize__body">
+            @csrf
+            @method('PUT')
+            <p class="adm-muted">{{ __('admin.accounts.customize_hint') }}</p>
+            <ol class="adm-customize__list">
+                @foreach ($order as $i => $value)
+                    @php($label = \App\Enums\AccountStatus::from($value)->label())
+                    <li>
+                        <input type="hidden" name="order[]" value="{{ $value }}">
+                        <span class="adm-customize__name">{{ $label }}</span>
+                        <label>
+                            <span class="adm-muted">{{ __('admin.accounts.per_page') }}</span>
+                            <select name="per_page[{{ $value }}]" aria-label="{{ __('admin.accounts.per_page') }}: {{ $label }}">
+                                @foreach ($perPageOptions as $option)
+                                    <option value="{{ $option }}" @selected($perPage[$value] === $option)>{{ $option }}</option>
+                                @endforeach
+                            </select>
+                        </label>
+                        <span class="adm-actions">
+                            <button type="submit" class="adm-btn adm-btn--sm" name="move" value="{{ $value }}:up" @disabled($loop->first) aria-label="{{ __('admin.common.up') }}: {{ $label }}">&uarr;</button>
+                            <button type="submit" class="adm-btn adm-btn--sm" name="move" value="{{ $value }}:down" @disabled($loop->last) aria-label="{{ __('admin.common.down') }}: {{ $label }}">&darr;</button>
+                        </span>
+                    </li>
+                @endforeach
+            </ol>
+            <button type="submit" class="adm-btn adm-btn--primary">{{ __('admin.common.save') }}</button>
+        </form>
+    </details>
 
-    {{ $accounts->links('admin.pagination') }}
+    @foreach ($order as $value)
+        @include('admin.accounts._table', ['status' => \App\Enums\AccountStatus::from($value), 'paginator' => $sections[$value]])
+    @endforeach
 </x-admin.layout>

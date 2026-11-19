@@ -12,6 +12,7 @@
                 <dt>{{ __('admin.accounts.plan') }}</dt><dd>{{ $account->plan?->displayName() ?? __('admin.accounts.no_plan') }}</dd>
                 <dt>{{ __('admin.accounts.trial_used_at') }}</dt><dd>{{ $account->trial_used_at?->format('d/m/Y H:i') ?? '—' }}</dd>
                 <dt>{{ __('admin.accounts.trial_ends_at') }}</dt><dd>{{ $account->trial_ends_at?->format('d/m/Y H:i') ?? '—' }}</dd>
+                <dt>{{ __('admin.accounts.paid_until') }}</dt><dd>{{ $account->paid_until?->format('d/m/Y H:i') ?? '—' }}</dd>
             </dl>
         </div>
 
@@ -26,6 +27,16 @@
                         <option value="{{ $plan->id }}" @selected($account->plan_id === $plan->id)>{{ $plan->displayName() }}</option>
                     @endforeach
                 </select>
+                <input type="date" name="paid_until" value="{{ old('paid_until', $account->paid_until?->format('Y-m-d')) }}" aria-label="{{ __('admin.accounts.paid_until') }}" title="{{ __('admin.accounts.paid_until') }}">
+                <button type="submit" class="adm-btn">{{ __('admin.common.save') }}</button>
+            </form>
+            <p class="adm-muted">{{ __('admin.accounts.paid_until_hint') }}</p>
+
+            <h2>{{ __('admin.accounts.paid_until') }}</h2>
+            <form method="POST" action="{{ route('admin.accounts.paid-until', $account) }}" class="adm-inline">
+                @csrf
+                @method('PUT')
+                <input type="date" name="paid_until" value="{{ old('paid_until', $account->paid_until?->format('Y-m-d')) }}" aria-label="{{ __('admin.accounts.paid_until') }}">
                 <button type="submit" class="adm-btn">{{ __('admin.common.save') }}</button>
             </form>
 

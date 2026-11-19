@@ -205,3 +205,43 @@ td.adm-actions > * { display: inline-block; vertical-align: middle; margin-right
 div.adm-actions > .adm-btn, div.adm-actions > select { flex: 1 1 auto; }
 @media (min-width: 720px) { div.adm-actions > .adm-btn, div.adm-actions > select { flex: 0 0 auto; } }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+
+/* Contas: busca, seções por status, vencimento e painel Personalizar */
+.adm-search { margin-bottom: 16px; }
+.adm-customize { margin-bottom: 20px; }
+.adm-customize > summary { cursor: pointer; list-style: none; width: 100%; justify-content: space-between; }
+.adm-customize > summary::-webkit-details-marker { display: none; }
+.adm-customize__body { margin-top: 8px; padding: 14px; border: 1px solid var(--adm-line); border-radius: var(--adm-radius); background: #fff; }
+.adm-customize__list { margin: 0 0 14px; padding: 0; list-style: none; }
+.adm-customize__list li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 0; border-bottom: 1px solid var(--adm-line); }
+.adm-customize__name { flex: 1 1 100%; font-weight: 600; }
+.adm-customize__list label { display: flex; align-items: center; gap: 8px; flex: 1 1 auto; }
+.adm-customize__list select { min-width: 84px; }
+.adm-status-section { margin-bottom: 20px; }
+.adm-status-section > summary { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 0; list-style: none; }
+.adm-status-section > summary::-webkit-details-marker { display: none; }
+.adm-status-section > summary h2 { margin: 0; font-size: 1.1rem; }
+.adm-expiry__date, .adm-expiry__left { display: block; }
+.adm-expiry__left { color: var(--adm-muted); font-size: .78rem; }
+.adm-expiry__left--urgent { color: var(--adm-danger); font-weight: 700; }
+@media (max-width: 719px) {
+  .adm-table--stack td.adm-expiry { flex-wrap: wrap; }
+  .adm-table--stack td.adm-expiry > span, .adm-table--stack td.adm-expiry > small { text-align: right; }
+}
+@media (min-width: 720px) {
+  .adm-customize__name { flex: 1 1 auto; }
+  .adm-customize__list label { flex: 0 0 auto; }
+}
+
+/* Tabelas de contas por status: mesmas larguras de coluna em todas, para alinhar umas com as outras. */
+@media (min-width: 720px) {
+    .adm-table--accounts { table-layout: fixed; width: 100%; }
+    .adm-table--accounts th:nth-child(1) { width: 26%; }
+    .adm-table--accounts th:nth-child(2) { width: 16%; }
+    .adm-table--accounts th:nth-child(3) { width: 18%; }
+    .adm-table--accounts th:nth-child(4),
+    .adm-table--accounts th:nth-child(5) { width: 9%; }
+    .adm-table--accounts th:nth-child(6) { width: 11%; }
+    .adm-table--accounts th:nth-child(7) { width: 11%; }
+    .adm-table--accounts td:first-child { overflow-wrap: anywhere; }
+}

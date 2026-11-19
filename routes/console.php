@@ -16,6 +16,9 @@ use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('accounts:expire-trials')->everyMinute()->withoutOverlapping();
 
+// Plano pago vencido (paid_until no passado) vira past_due.
+Schedule::command('accounts:expire-paid')->dailyAt('00:10')->withoutOverlapping();
+
 Schedule::command('events:refresh-statuses')->everyMinute()->withoutOverlapping();
 
 // ZIPs de exportação expiram em 7 dias.

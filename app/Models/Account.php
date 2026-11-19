@@ -33,8 +33,22 @@ class Account extends Model
             'status' => AccountStatus::class,
             'trial_used_at' => 'datetime',
             'trial_ends_at' => 'datetime',
+            'paid_until' => 'datetime',
             'branding' => 'array',
         ];
+    }
+
+    /**
+     * Vencimento da conta: trial -> fim do teste (null se ainda não começou);
+     * active -> paid_until; demais status -> null.
+     */
+    public function expiresAt(): ?\Illuminate\Support\Carbon
+    {
+        return match ($this->status) {
+            AccountStatus::Trial => $this->trial_ends_at,
+            AccountStatus::Active => $this->paid_until,
+            default => null,
+        };
     }
 
     public function plan(): BelongsTo

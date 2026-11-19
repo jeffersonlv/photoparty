@@ -26,8 +26,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', 'verified']
 
     // Contas
     Route::get('/accounts', [AccountController::class, 'index'])->name('accounts.index');
+    Route::put('/accounts/settings', [AccountController::class, 'updateSettings'])->name('accounts.settings');
     Route::get('/accounts/{account}', [AccountController::class, 'show'])->name('accounts.show');
     Route::put('/accounts/{account}/plan', [AccountController::class, 'updatePlan'])->name('accounts.plan');
+    Route::put('/accounts/{account}/paid-until', [AccountController::class, 'updatePaidUntil'])->name('accounts.paid-until');
     Route::put('/accounts/{account}/status', [AccountController::class, 'updateStatus'])->name('accounts.status');
     Route::post('/accounts/{account}/extend-trial', [AccountController::class, 'extendTrial'])->name('accounts.extend-trial');
 

@@ -18,7 +18,7 @@
             </div>
             <div>
                 <dt class="text-xs font-semibold text-white/70">{{ __('app.dashboard.plan') }}</dt>
-                <dd class="mt-0.5 font-bold">{{ $account->plan?->name ?? __('app.dashboard.no_plan') }}</dd>
+                <dd class="mt-0.5 font-bold">{{ $account->plan?->displayName() ?? __('app.dashboard.no_plan') }}</dd>
             </div>
         </dl>
 

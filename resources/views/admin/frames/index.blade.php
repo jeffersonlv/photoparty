@@ -17,7 +17,7 @@
                 @forelse ($frames as $frame)
                     <tr>
                         <td data-label="#">{{ $loop->iteration }}</td>
-                        <td data-label="{{ __('admin.frames.name') }}">{{ $frame->name }}</td>
+                        <td data-label="{{ __('admin.frames.name') }}">{{ $frame->displayName() }}</td>
                         <td data-label="{{ __('admin.frames.key') }}">{{ $frame->template_key ?? '—' }}</td>
                         <td data-label="{{ __('admin.frames.status') }}"><span @class(['adm-badge', 'adm-badge--active' => $frame->is_active, 'adm-badge--cancelled' => ! $frame->is_active])>{{ $frame->is_active ? __('admin.common.on') : __('admin.common.off') }}</span></td>
                         <td class="adm-actions" data-label="{{ __('admin.common.actions') }}">

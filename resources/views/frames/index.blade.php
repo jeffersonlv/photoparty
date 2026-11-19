@@ -39,10 +39,10 @@
                             'o' => $o,
                             'bg' => $o['background'] ? $dir.$o['background'] : null,
                             'overlay' => $o['overlay'] ? $dir.$o['overlay'] : null,
-                            'label' => __('frames.preview_alt', ['name' => $frame->name]),
+                            'label' => __('frames.preview_alt', ['name' => $frame->displayName()]),
                         ])
                     @endif
-                    <p class="mt-2 text-sm font-bold">{{ $frame->config['name'][str_starts_with(app()->getLocale(), 'en') ? 'en' : 'pt'] ?? $frame->name }}</p>
+                    <p class="mt-2 text-sm font-bold">{{ $frame->displayName() }}</p>
                 </li>
             @endforeach
         </ul>
@@ -91,7 +91,7 @@
                                             'o' => $frame->config['orientations'][$orientation],
                                             'bg' => null,
                                             'overlay' => route('frames.image', ['frame' => $frame, 'orientation' => $orientation], false),
-                                            'label' => __('frames.preview_alt', ['name' => $frame->name]).' ('.__('frames.orientation.'.$orientation).')',
+                                            'label' => __('frames.preview_alt', ['name' => $frame->displayName()]).' ('.__('frames.orientation.'.$orientation).')',
                                         ])
                                     </div>
                                 @endforeach

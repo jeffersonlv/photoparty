@@ -9,7 +9,7 @@
                 <dt>{{ __('admin.accounts.events') }}</dt><dd>{{ $usage['events'] }}</dd>
                 <dt>{{ __('admin.accounts.photos') }}</dt><dd>{{ $usage['photos'] }}</dd>
                 <dt>{{ __('admin.accounts.storage') }}</dt><dd>{{ number_format($usage['bytes'] / 1048576, 1, ',', '.') }} MB</dd>
-                <dt>{{ __('admin.accounts.plan') }}</dt><dd>{{ $account->plan?->name ?? __('admin.accounts.no_plan') }}</dd>
+                <dt>{{ __('admin.accounts.plan') }}</dt><dd>{{ $account->plan?->displayName() ?? __('admin.accounts.no_plan') }}</dd>
                 <dt>{{ __('admin.accounts.trial_used_at') }}</dt><dd>{{ $account->trial_used_at?->format('d/m/Y H:i') ?? '—' }}</dd>
                 <dt>{{ __('admin.accounts.trial_ends_at') }}</dt><dd>{{ $account->trial_ends_at?->format('d/m/Y H:i') ?? '—' }}</dd>
             </dl>
@@ -23,7 +23,7 @@
                 <select name="plan_id" aria-label="{{ __('admin.accounts.plan') }}">
                     <option value="">{{ __('admin.accounts.no_plan') }}</option>
                     @foreach ($plans as $plan)
-                        <option value="{{ $plan->id }}" @selected($account->plan_id === $plan->id)>{{ $plan->name }}</option>
+                        <option value="{{ $plan->id }}" @selected($account->plan_id === $plan->id)>{{ $plan->displayName() }}</option>
                     @endforeach
                 </select>
                 <button type="submit" class="adm-btn">{{ __('admin.common.save') }}</button>

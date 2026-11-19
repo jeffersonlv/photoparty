@@ -9,7 +9,7 @@
         <div class="hm-plans">
             @foreach ($plans as $plan)
                 <article class="hm-plan">
-                    <h3>{{ $plan->name }}</h3>
+                    <h3>{{ $plan->displayName() }}</h3>
                     <p class="hm-plan__price">
                         @if ((float) $plan->price > 0)
                             <span>{{ $plan->currency === 'EUR' ? '€' : ($plan->currency === 'BRL' ? 'R$' : $plan->currency.' ') }}{{ number_format((float) $plan->price, 2, app()->getLocale() === 'en' ? '.' : ',', app()->getLocale() === 'en' ? ',' : '.') }}</span>

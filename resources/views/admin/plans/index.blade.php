@@ -23,7 +23,7 @@
                 @forelse ($plans as $plan)
                     <tr>
                         <td data-label="{{ __('admin.plans.sort_order') }}">{{ $plan->sort_order }}</td>
-                        <td data-label="{{ __('admin.plans.name') }}">{{ $plan->name }} <small class="adm-muted">{{ $plan->slug }}</small></td>
+                        <td data-label="{{ __('admin.plans.name') }}">{{ $plan->displayName() }} <small class="adm-muted">{{ $plan->slug }}</small></td>
                         <td data-label="{{ __('admin.plans.price') }}">{{ $plan->currency }} {{ number_format((float) $plan->price, 2, ',', '.') }}</td>
                         <td data-label="{{ __('admin.plans.max_events') }}">{{ $plan->max_events_per_month ?? __('admin.plans.unlimited') }}</td>
                         <td data-label="{{ __('admin.plans.max_photos') }}">{{ $plan->max_photos_per_event }}</td>

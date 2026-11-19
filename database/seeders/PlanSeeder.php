@@ -16,6 +16,7 @@ class PlanSeeder extends Seeder
             [
                 'slug' => 'event',
                 'name' => 'Evento avulso',
+                'name_en' => 'Single event',
                 'price' => 39.00,
                 'max_events_per_month' => 1,
                 'max_photos_per_event' => 500,
@@ -28,6 +29,7 @@ class PlanSeeder extends Seeder
             [
                 'slug' => 'pro',
                 'name' => 'Profissional',
+                'name_en' => 'Professional',
                 'price' => 79.00,
                 'max_events_per_month' => 8,
                 'max_photos_per_event' => 2000,
@@ -40,6 +42,7 @@ class PlanSeeder extends Seeder
             [
                 'slug' => 'agency',
                 'name' => 'Agência',
+                'name_en' => 'Agency',
                 'price' => 199.00,
                 'max_events_per_month' => 30,
                 'max_photos_per_event' => 5000,

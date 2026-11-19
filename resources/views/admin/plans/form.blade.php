@@ -13,6 +13,10 @@
             <input id="name" name="name" type="text" value="{{ old('name', $plan->name) }}" maxlength="100" required>
         </div>
         <div class="adm-field">
+            <label for="name_en">{{ __('admin.plans.name_en') }}</label>
+            <input id="name_en" name="name_en" type="text" value="{{ old('name_en', $plan->name_en) }}" maxlength="100">
+        </div>
+        <div class="adm-field">
             <label for="slug">{{ __('admin.plans.slug') }}</label>
             <input id="slug" name="slug" type="text" value="{{ old('slug', $plan->slug) }}" maxlength="100" required>
         </div>

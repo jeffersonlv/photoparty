@@ -71,6 +71,7 @@ class PlanController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:100'],
+            'name_en' => ['nullable', 'string', 'max:100'],
             'slug' => ['required', 'string', 'max:100', 'alpha_dash:ascii', Rule::unique('plans', 'slug')->ignore($plan?->id)],
             'price' => ['required', 'numeric', 'min:0', 'max:99999'],
             'currency' => ['required', 'string', 'size:3', 'alpha:ascii'],

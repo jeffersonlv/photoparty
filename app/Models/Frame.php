@@ -125,4 +125,12 @@ class Frame extends Model
 
         return $this->isCustom() && is_string($path) && $path !== '' ? $path : null;
     }
+
+    /** Nome no idioma da página: modelos do sistema trazem pt/en no config; os do organizador usam o nome dado por ele. */
+    public function displayName(): string
+    {
+        $lang = str_starts_with(app()->getLocale(), 'en') ? 'en' : 'pt';
+
+        return (string) ($this->config['name'][$lang] ?? $this->name);
+    }
 }

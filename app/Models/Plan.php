@@ -15,6 +15,7 @@ class Plan extends Model
 
     protected $fillable = [
         'name',
+        'name_en',
         'slug',
         'price',
         'currency',
@@ -45,5 +46,15 @@ class Plan extends Model
     public function accounts(): HasMany
     {
         return $this->hasMany(Account::class);
+    }
+
+    /** Nome do plano no idioma da página (inglês usa name_en quando preenchido). */
+    public function displayName(): string
+    {
+        if (str_starts_with(app()->getLocale(), 'en') && filled($this->name_en)) {
+            return $this->name_en;
+        }
+
+        return $this->name;
     }
 }

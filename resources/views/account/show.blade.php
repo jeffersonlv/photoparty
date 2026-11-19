@@ -5,7 +5,7 @@
         <h2 class="section-title mb-3">{{ __('account.data_title') }}</h2>
         <dl class="grid gap-3 sm:grid-cols-2">
             <div><dt class="text-xs font-semibold text-muted">{{ __('account.account_name') }}</dt><dd class="font-bold">{{ $account->name }}</dd></div>
-            <div><dt class="text-xs font-semibold text-muted">{{ __('account.plan') }}</dt><dd class="font-bold">{{ $account->plan?->name ?? __('app.dashboard.no_plan') }} · {{ $account->status->label() }}</dd></div>
+            <div><dt class="text-xs font-semibold text-muted">{{ __('account.plan') }}</dt><dd class="font-bold">{{ $account->plan?->displayName() ?? __('app.dashboard.no_plan') }} · {{ $account->status->label() }}</dd></div>
             <div><dt class="text-xs font-semibold text-muted">{{ __('account.user') }}</dt><dd>{{ $user->name }} · {{ $user->email }}</dd></div>
             <div><dt class="text-xs font-semibold text-muted">{{ __('account.retention') }}</dt><dd>{{ __('account.retention_days', ['days' => $retentionDays]) }}</dd></div>
         </dl>

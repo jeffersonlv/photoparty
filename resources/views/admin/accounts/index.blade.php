@@ -37,7 +37,7 @@
                     <tr>
                         <td data-label="{{ __('admin.accounts.name') }}"><a href="{{ route('admin.accounts.show', $account) }}">{{ $account->name }}</a></td>
                         <td data-label="{{ __('admin.accounts.status') }}"><span class="adm-badge adm-badge--{{ $account->status->value }}">{{ $account->status->label() }}</span></td>
-                        <td data-label="{{ __('admin.accounts.plan') }}">{{ $account->plan?->name ?? __('admin.accounts.no_plan') }}</td>
+                        <td data-label="{{ __('admin.accounts.plan') }}">{{ $account->plan?->displayName() ?? __('admin.accounts.no_plan') }}</td>
                         <td data-label="{{ __('admin.accounts.events') }}">{{ $account->events_count }}</td>
                         <td data-label="{{ __('admin.accounts.users') }}">{{ $account->users_count }}</td>
                         <td data-label="{{ __('admin.accounts.created') }}">{{ $account->created_at?->format('d/m/Y') }}</td>
